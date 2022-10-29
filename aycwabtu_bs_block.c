@@ -14,7 +14,7 @@
 
 #ifndef USEALLBITSLICE
 
-void AYCW_INLINE aycw_block_sbox(dvbcsa_bs_word_t *);
+void aycw_block_sbox(dvbcsa_bs_word_t *);
 
 #ifdef USEWORDBLOCKSBOX
 static uint16   aycw_block_sbox16[0x10000];
@@ -44,9 +44,7 @@ const uint8		cu8_aycw_block_sbox[256] =
 /* table 19,27,55 is achieved from table 17, 35, 8,... by applying 7-x to lower 3 bits */
 static const uint8 bf_key_perm[64] = {19, 27, 55, 46,  1, 15, 36, 22, 56, 61, 39, 21, 54, 58, 50, 28, 7, 29, 51,  6, 33, 35, 20, 16, 47, 30, 32, 63, 10, 11,  4, 38, 62, 26, 40, 18, 12, 52, 37, 53, 23, 59, 41, 17, 31,  0, 25, 43, 44, 14,  2, 13, 45, 48,  3, 60, 49,  8, 34,  5,  9, 42, 57, 24,};
 
-/*static const uint8 bf_key_perm[64] = {17, 35, 8, 6, 41, 48, 28, 20, 27, 53, 61, 49, 18, 32, 58, 63, 23, 19, 36, 38, 1, 52, 26, 0, 33, 3, 12, 13, 56, 39, 25, 40, 50, 34, 51, 11, 21, 47, 29, 57, 44, 30, 7, 24, 22, 46, 60, 16, 59, 4, 55, 42, 10, 5, 9, 43, 31, 62, 45, 14, 2, 37, 15, 54}; */
-
-void AYCW_INLINE aycw_block_key_perm(dvbcsa_bs_word_t* in, dvbcsa_bs_word_t* out)
+void aycw_block_key_perm(dvbcsa_bs_word_t* in, dvbcsa_bs_word_t* out)
 {
 #ifndef USEFASTBLOCKKEYPERM
    int i;
@@ -136,6 +134,7 @@ void aycw_block_key_schedule(const dvbcsa_bs_word_t* keys, dvbcsa_bs_word_t* kk)
 
    for (i = 0; i < 64; i++)  
       kk[6 * 64 + i] = keys[i];
+
    aycw_block_key_perm(&kk[6*64], &kk[5*64]);
    aycw_block_key_perm(&kk[5*64], &kk[4*64]);
    aycw_block_key_perm(&kk[4*64], &kk[3*64]);
@@ -179,7 +178,7 @@ void aycw_block_key_schedule(const dvbcsa_bs_word_t* keys, dvbcsa_bs_word_t* kk)
    }
 }
 
-AYCW_INLINE void aycw_block_sbox(dvbcsa_bs_word_t *w)
+void aycw_block_sbox(dvbcsa_bs_word_t *w)
 {
 #ifndef USEWORDBLOCKSBOX
    // table lookup, works one byte at a time
@@ -207,7 +206,7 @@ AYCW_INLINE void aycw_block_sbox(dvbcsa_bs_word_t *w)
    ret = BS_OR(ret, BS_SHL8(BS_VAL_LSDW(u16tmp), shift));   }
 
 
-AYCW_INLINE dvbcsa_bs_word_t aycw_block_sbox_by_value(dvbcsa_bs_word_t in)
+dvbcsa_bs_word_t aycw_block_sbox_by_value(dvbcsa_bs_word_t in)
 {
 /* the 8 bit lookup part (!USEWORDBLOCKSBOX) could be implemented here too... */
    dvbcsa_bs_word_t  ret = BS_VAL8(00);
@@ -283,7 +282,7 @@ void aycw_block_decrypt(const dvbcsa_bs_word_t* keys, dvbcsa_bs_word_t* r)
       for (j = 0; j < 8; j++)
       {
 
-#if 0
+#if 1
          /* calling per reference is 19% faster with MS CC but gcc decided 
             to optimize the whole funtion call away for some reason ?!? :-( */
          dvbcsa_bs_word_t sbox_out = BS_XOR(keys[i * 8 + j], r6xK[j]);
@@ -369,15 +368,16 @@ int aycw_checkPESheader(dvbcsa_bs_word_t *data, dvbcsa_bs_word_t *candidates)
    {
       // check also for 4th byte Audio streams (0xC0-0xDF), Video streams (0xE0-0xEF) ?
       tmp = BS_OR(BS_OR(data[i], data[i + 8]), BS_XOR(data[i + 16], BS_VAL8(01)));    // 0x00 | 0x00 | 0x01^0x01 == 0x00
-      // OPTIMIZEME: check whole batch for zero bits at once?
+
       for (j = 0; j < BS_BATCH_BYTES; j++)
       {
          a = BS_EXTRACT8(tmp, j);
          if (a == 0)
          {
             // key candidate found in bytesliced data array at i, j
-            c = BS_OR(c, BS_SHL(BS_VAL_LSDW(1), i*BS_BATCH_BYTES + j));
-            ret++;
+            *candidates = c = BS_OR(c, BS_SHL(BS_VAL_LSDW(1), i*BS_BATCH_BYTES + j));
+            return j+1; // TODO: ensure that we are allowed 
+            //ret++;
          }
       }
    }

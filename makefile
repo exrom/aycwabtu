@@ -1,69 +1,143 @@
 .PHONY: all clean
 
 CC          = gcc
-LD          = gcc
-
-SHELL=bash
 
 GITHASH := $(shell git rev-parse --short HEAD)
 
+#https://stackoverflow.com/questions/1079832/how-can-i-configure-my-makefile-for-debug-and-release-builds
 CFLAGS      = \
     -w                                  \
     -I src/libdvbcsa/dvbcsa             \
-    -msse2  -msse4.2                    \
-    -O2                                 \
-    -DGITHASH=\"$(GITHASH)\" 
+	-finline-functions                  \
+    -DGITHASH=\"$(GITHASH)\" \
+    -MD
 
-obj/%.o : src/%.c
-	@mkdir -p $(@D)
-	$(CC) -c -MD $(CFLAGS)-o obj/$*.o $<
+CFLAGS_SSE4_2		= \
+    -msse4.2                            \
+	-DENABLE_P_128_SSE2
 
-ayc_src = \
-	main.c             \
-	bs_algo.c          \
-	bs_block.c         \
-	bs_block_ab.c      \
-	bs_sse2.c     		\
-	bs_stream.c        \
-	bs_uint32.c	    \
-	ts.c
+CFLAGS_INT32		= \
+	-DENABLE_P_32_INT
 
-tsgen_src = tsgen.c
-
+#################### sources ###################
 libdvbcsa_src = \
-	libdvbcsa/dvbcsa_algo.c     \
-	libdvbcsa/dvbcsa_block.c    \
-	libdvbcsa/dvbcsa_key.c      \
-	libdvbcsa/dvbcsa_stream.c
+	src/libdvbcsa/dvbcsa_algo.c     \
+	src/libdvbcsa/dvbcsa_block.c    \
+	src/libdvbcsa/dvbcsa_key.c      \
+	src/libdvbcsa/dvbcsa_stream.c
 
-ayc_obj         = $(ayc_src:%.c=obj/%.o)
-tsgen_obj       = $(tsgen_src:%.c=obj/%.o)
-libdvbcsa_obj   = $(libdvbcsa_src:%.c=obj/%.o)
+SRCS = \
+	src/main.c             \
+	src/bs_algo.c          \
+	src/bs_block.c         \
+	src/bs_block_ab.c      \
+	src/bs_sse2.c          \
+	src/bs_stream.c        \
+	src/bs_uint32.c        \
+	src/ts.c               \
+    $(libdvbcsa_src)
 
-all: aycwabtu
-   
+tsgen_src = tsgen.c    \
+    $(libdvbcsa_src)
 
-aycwabtu: $(ayc_obj) $(libdvbcsa_obj)
-	$(LD) -static -s -o $@ $(ayc_obj) $(libdvbcsa_obj)
-	@echo $@ created
-
-tsgen: $(tsgen_obj) $(libdvbcsa_obj)
-	$(LD) -o $@ $(tsgen_obj) $(libdvbcsa_obj)
-	@echo $@ created
-
-
-check: aycwabtu tsgen always
-# just 'timeout' will let windows find C:\Windows\System32\timeout.exe first :(
-	/usr/bin/timeout 5 ./aycwabtu -t test/Testfile_CW_7FFAE9A02486.ts -a 7FFAE9A00000
-	cd test && /usr/bin/timeout 60 ./testframe.sh
-
-always:
+OBJS            = $(SRCS:%.c=%.o)
+tsgen_obj       = $(tsgen_src:%.c=%.o)
+EXE             = aycwabtu
 
 
-aycwabtu tsgen : makefile
+#
+# Debug build settings
+#
+DBGCFLAGS = -O0 -DDEBUG
 
-include $(wildcard obj/*.d) $(wildcard obj/libdvbcsa/*.d)
+DBGDIR_INT32 = debug/int32
+DBGEXE_INT32 = $(DBGDIR_INT32)/$(EXE)
+DBGOBJS_INT32 = $(addprefix $(DBGDIR_INT32)/, $(OBJS))
+
+DBGDIR_SSE4_2 = debug/sse4_2
+DBGEXE_SSE4_2 = $(DBGDIR_SSE4_2)/$(EXE)
+DBGOBJS_SSE4_2 = $(addprefix $(DBGDIR_SSE4_2)/, $(OBJS))
+
+
+#
+# Release build settings
+#
+RELCFLAGS = -O3
+
+RELDIR_INT32 = release/int32
+RELEXE_INT32 = $(RELDIR_INT32)/$(EXE)
+RELOBJS_INT32 = $(addprefix $(RELDIR_INT32)/, $(OBJS))
+
+RELDIR_SSE4_2 = release/sse4_2
+RELEXE_SSE4_2 = $(RELDIR_SSE4_2)/$(EXE)
+RELOBJS_SSE4_2 = $(addprefix $(RELDIR_SSE4_2)/, $(OBJS))
+
+.PHONY: all clean debug prep release remake
+
+# Default build
+all: prep release debug
+
+#
+# Debug rules
+#
+debug: $(DBGEXE_INT32) $(DBGEXE_SSE4_2)
+
+$(DBGDIR_INT32)/%.o: %.c prep
+	@mkdir -p $(@D)
+	$(CC) -c -MD $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_INT32) $< -o $@
+
+$(DBGEXE_INT32): $(DBGOBJS_INT32)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_INT32) $^ -o $(DBGEXE_INT32)
+	@echo $@ created;echo
+
+$(DBGDIR_SSE4_2)/%.o: %.c prep
+	@mkdir -p $(@D)
+	$(CC) -c -MD $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_SSE4_2) $< -o $@
+
+$(DBGEXE_SSE4_2): $(DBGOBJS_SSE4_2)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_SSE4_2) $^ -o $(DBGEXE_SSE4_2)
+	@echo $@ created;echo
+
+#
+# Release rules
+#
+release: $(RELEXE_INT32) $(RELEXE_SSE4_2)
+
+$(RELDIR_INT32)/%.o: %.c prep
+	@mkdir -p $(@D)
+	$(CC) -c -MD $(CFLAGS) $(RELCFLAGS) $(CFLAGS_INT32) $< -o $@
+
+$(RELEXE_INT32): $(RELOBJS_INT32)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(RELCFLAGS) $(CFLAGS_INT32) $^ -o $(RELEXE_INT32)
+	@echo $@ created;echo
+
+$(RELDIR_SSE4_2)/%.o: %.c prep
+	@mkdir -p $(@D)
+	$(CC) -c -MD $(CFLAGS) $(RELCFLAGS) $(CFLAGS_SSE4_2) $< -o $@
+
+$(RELEXE_SSE4_2): $(RELOBJS_SSE4_2)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(RELCFLAGS) $(CFLAGS_SSE4_2) $^ -o $(RELEXE_SSE4_2)
+	@echo $@ created;echo
+
+# tsgen functionality 2b moved into main binary
+tsgen: 
+	echo TBD
+	false
+
+check:
+	echo TBD
+	false
+
 
 clean:
-	@rm -rf aycwabtu tsgen aycwabtu.exe tsgen.exe obj
+	rm -rf release debug
+
+prep: makefile
+	@gcc --version | head -n 1
+    
+include $(wildcard $(DBGDIR)/src/*.d $(RELDIR)/src/*.d)
 

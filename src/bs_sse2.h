@@ -2,6 +2,8 @@
 #ifndef AYCW_SSE_H_
 #define AYCW_SSE_H_
 
+#define AYC_PARALLEL_MODE_STRING    "SSE4.2"
+
 #include <xmmintrin.h>
 #include <emmintrin.h>
 

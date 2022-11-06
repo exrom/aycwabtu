@@ -48,6 +48,6 @@ set up data used for stream. Depends on scrambled data only, so can be global
 void aycw_stream_decrypt(dvbcsa_bs_word_t * data_return, unsigned int len, dvbcsa_bs_word_t * BS_key, dvbcsa_bs_word_t *bs_data_sb0);
 
 
-static AYCW_INLINE void aycw__vInitShiftRegister(dvbcsa_bs_word_t * BS_key, aycw_tstRegister * stRegister);
+AYCW_INLINE void aycw__vInitShiftRegister(dvbcsa_bs_word_t * BS_key, aycw_tstRegister * stRegister);
 
 #endif // #ifndef aycw_bs_stream_h

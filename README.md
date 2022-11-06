@@ -1,16 +1,25 @@
-AYCWABTU
-========
+# AYCWABTU
 
-overview
---------
-AYCWABTU is a proof of concept for a brute force control word calculation tool for the common scrambling algorithm used in digital video broadcasting.
+## overview
 
-AYCWABTU is not useful for live decryption of pay TV channels because the search for one key needs much more time than the key renewal interval. Majority of channels change keys multiple times a minute and AYCWABTU needs months to brute force one key. AYCWABTU is intended as proof of concept, and is not intended to be used for illegal purposes. The author does not accept responsibility for ANY damage incurred by the use of it.
+AYCWABTU is a proof of concept for a brute force control word  
+calculation tool for the common scrambling algorithm used in digital video  
+broadcasting.
 
-It uses parallel bit slice technique. Other csa parallel bit slice implementations (like libdvbcsa) are meant for stream processing. They encrypt or decrypt many packets with one key. AYCWABTU uses parallel bit slice for decrypting one packet with many keys.
+AYCWABTU is not useful for live decryption of pay TV channels because the  
+search for one key needs much more time than the key renewal interval. Majority  
+of channels change keys multiple times a minute and AYCWABTU needs months to  
+brute force one key. AYCWABTU is intended as proof of concept, and is not  
+intended to be used for illegal purposes. The author does not accept  
+responsibility for ANY damage incurred by the use of it.
 
-features
---------
+It uses parallel bit slice technique. Other csa parallel bit slice  
+implementations (like libdvbcsa) are meant for stream processing.  
+They encrypt or decrypt many packets with one key.  
+AYCWABTU uses parallel bit slice for decrypting one packet with many keys.
+
+## features
+
 * fast brute force key calculation due to bit sliced crack algorithm (sse2 and 32 bit versions available)
 * open source. License: GPL
 * read three encrypted data packets from ts file with many checks for valid data
@@ -19,33 +28,49 @@ features
 * written in C. Developed in Visual Studio 2013, tested with gcc 4.8.2+cygwin 2.844
 * much potential for speed improvements
 
+## usage
 
-to do list
-----------
+Have an encrypted transport stream file *file.ts* you want to know the key for and run
+
+>    aycwabtu -t file.ts  
+
+Aycwabtu will check if the file is valid and start searching for the key.  
+If will print the current speed in Mcw/s (10^6 control words per second).  
+A speed of 8.925 Mcw/s will take one year to search the whole key space of 2^48 keys.  
+Optional command line parameters -a and -o may be used to set start and stop key. Might be  
+useful for distributed key search.  
+During search, aycwabtu will write a *resume* file that allows to continue an interrupted search.  
+Aycwabtu will write the found key to file *keyfound.cwl* which may be used with tsdec to decrypt content.
+Program can be interrupted by Ctrl-C.  
+Note: on windows, aycwabtu needs the cygwin1.dll provided by cygwin (https://cygwin.com) -  
+if this dll is missing: error while loading shared libraries.
+
+
+## to do list
+
 * speed improvement, see ideas below
 * multi threading
 * support for 256 bits parallel with advanced vector extensions AVX
+* detect CPU features at runtime and execute appropriate code
 * OpenCL support
 * optimize the block sbox boolean equations. Only slightly faster with 128 bits. See da_diett.pdf Chpt. 3.1
-* Ctrl-C handling on linux/windows
 
-speed optimization ideas
-------------------------
+## speed optimization ideas
+
 * most important: OpenCL support (not only CUDA, please!). 
 * check, why aycw_block_sbox(&sbox_out) fails in gcc, possible speedup ~19%
 * block decrypt first (does not depend on stream). Then stream afterwards, stop XORing immediately 
   if foreseeable there is no PES header
 
-developers
-----------
+## developers
 * after changing the code, run tests with SELFTEST enabled to make sure the algorithm still works. It's too easy to break things.
 * run "make check"
 * test all the batch size implementations
 * share your benchmark values in the pull request
 * publish all your work please, AYCWABTU is released under GPL
 
-credits
--------
+## credits
+
 * FFdecsa, Copyright 2003-2004, fatih89r
 * libdvbcsa, http://www.videolan.org/developers/libdvbcsa.html
 * ANALYSIS OF THE DVB COMMON SCRAMBLING ALGORITHM, Ralf-Philipp Weinmann and Kai Wirt, Technical University of Darmstadt Department of Computer Science Darmstadt, Germany
@@ -60,5 +85,3 @@ credits
 "Sorry, it is hard to understand and modify but it was harder to design and implement!!!"        fatih89r
 
 Have fun.
-
-ganymede

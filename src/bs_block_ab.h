@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-void AYCW_INLINE aycw_block_key_perm(dvbcsa_bs_word_t* in, dvbcsa_bs_word_t* out);
+AYCW_INLINE void aycw_block_key_perm(dvbcsa_bs_word_t* in, dvbcsa_bs_word_t* out);
 void aycw_block_key_schedule(const dvbcsa_bs_word_t* keys, dvbcsa_bs_word_t* kk);
 void AYCW_INLINE aycw_block_sbox(dvbcsa_bs_word_t *,dvbcsa_bs_word_t *);
 void aycw_init_block(void);

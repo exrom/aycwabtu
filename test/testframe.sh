@@ -2,7 +2,8 @@
 
 set -e      # fail on all errors
 
-DUT=../aycwabtu
+#DUT=../aycwabtu
+DUT=$1
 
 KEYS=" \
 000000000000 \

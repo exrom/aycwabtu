@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>         /* getopt() */
 
-#ifdef WIN32
+#ifdef __CYGWIN__
 #  include <windows.h>
 #else
 #  include <time.h>
@@ -33,7 +33,7 @@
 #define KEYSPERINNERLOOP (1<<INNERKEYBITS)
 
 #define RESUMEFILENAME  "resume"
-#define FOUNDFILENAME   "keyfound"
+#define FOUNDFILENAME   "keyfound.cwl"
 
 /****************** globals ***********************/
 /* store cw bytes 0..3 and 4 without checksum for easy incrementing */
@@ -147,7 +147,7 @@ void aycw_read_resumefile(uint32 *key)
    unsigned char buf[8 * 3 + 2 + 1];
    unsigned char tmp[8+3]; /* visual C writes 4 bytes to pointer though 'hh' specifier was given */
 
-   if (filehdl = fopen(RESUMEFILENAME, "rb"))
+   if (filehdl = fopen(RESUMEFILENAME, "r"))
    {
       fseek(filehdl, 0, SEEK_SET);
       fread(buf, sizeof(buf), 1, filehdl);
@@ -165,16 +165,20 @@ void aycw_read_resumefile(uint32 *key)
    }
 }
 
-void aycw_write_keyfoundfile(unsigned char *cw)
+void aycw_write_keyfoundfile(unsigned char *cw, int probeparity, char* tsfile)
 {
    FILE * filehdl;
    int i;
-   char string[8*3+2+1];
+   char string[1024];
 
    printf("writing result to file \"%s\"\n", FOUNDFILENAME);
    if (filehdl = fopen(FOUNDFILENAME, "w"))
    {
-      sprintf(string, "%02X %02X %02X %02X %02X %02X %02X %02X\n",
+      strcpy(string, "# AYCWABTU cw brute forcer\n# found cw for ts file\n#    ");
+      fwrite(string, 1, strlen(string), filehdl);
+      fwrite(tsfile, 1, strlen(tsfile), filehdl);
+      sprintf(string, "\n#\n%d %02X %02X %02X %02X %02X %02X %02X %02X\n",
+         probeparity,
          cw[0], cw[1], cw[2], cw[3], cw[4], cw[5], cw[6], cw[7]);
       fwrite(string, 1, strlen(string), filehdl);
       fclose(filehdl);
@@ -251,7 +255,7 @@ void aycw_welcome_banner(void)
 #else
    printf(" - table sbox");
 #endif
-   printf("\nparallel bitslice batch size is %d\n", BS_BATCH_SIZE);
+   printf("\nSIMD mode: %s, batch size: %d\n", AYC_PARALLEL_MODE_STRING, BS_BATCH_SIZE);
    printf("----------------------------------------\n");
    setbuf(stdout, NULL);   // for gcc
 }
@@ -290,6 +294,7 @@ int main(int argc, char *argv[])
    int      opt;
    char*    tsfile = NULL;
    unsigned char probedata[3][16];
+   int      probeparity;
 
 
    /************** stream ***************/
@@ -377,7 +382,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-        ayc_read_ts(tsfile, &probedata[0][0]);
+        ayc_read_ts(tsfile, &probedata[0][0], &probeparity);
+        aycw_read_resumefile(&currentkey32);
     }
 
 
@@ -538,7 +544,7 @@ int main(int argc, char *argv[])
                         printf("KEY FOUND!!!    %02X %02X %02X [%02X]  %02X %02X %02X [%02X]\n",
                            cw[0], cw[1], cw[2], cw[3], cw[4], cw[5], cw[6], cw[7]);
 
-                        if (!benchmark) aycw_write_keyfoundfile(cw);
+                        if (tsfile) aycw_write_keyfoundfile(cw, probeparity, tsfile);
                         exit(OK);
 
                      }

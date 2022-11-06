@@ -12,8 +12,10 @@ typedef uint32_t     uint32;
 #define PARALLEL_32_INT       1
 #define PARALLEL_128_SSE2     2
 
-#ifndef PARALLEL_MODE   // can be set outside
-//#define PARALLEL_MODE      PARALLEL_32_INT
+#ifdef ENABLE_P_32_INT
+#define PARALLEL_MODE      PARALLEL_32_INT
+#endif
+#ifdef ENABLE_P_128_SSE2
 #define PARALLEL_MODE      PARALLEL_128_SSE2
 #endif
 
@@ -33,19 +35,16 @@ typedef uint32_t     uint32;
 
 /* enable cross checks of bitsliced and regular csa calculations.
 Run test cases with self test enabled after changing calculation dependent parts */
-#if _DEBUG
+#if DEBUG
 #define SELFTEST
 #endif
 
 // performance measure of some core algo parts
 // measure make sense in release config only
-#if _DEBUG
 //#define USE_MEASURE
-#else
-//#define USE_MEASURE
-#endif
 
-#define AYCW_INLINE __inline
+// inline is a troublemaker when used across translation units. Use gcc's -finline-functions instead
+#define AYCW_INLINE //inline
 
 
 /* use virtual shifting for 56 block rounds? faster but needs more memory */

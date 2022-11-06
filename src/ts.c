@@ -94,11 +94,11 @@ unsigned char* ayc_read_packet(unsigned char* buf, int *pid, int *crypted, int *
 
 
 
-/* read transport stream file and get three data blocks back to mount the brute forca attack on
+/* read transport stream file and get three data blocks back to mount the brute force attack on
    @tsfile     filename string
    @probedata  array [3][16]
    */
-unsigned char ayc_read_ts(unsigned char *tsfile, unsigned char *probedata)
+unsigned char ayc_read_ts(unsigned char *tsfile, unsigned char *probedata, int *probeparity)
 {
    unsigned long  len;
    FILE    *fptsfile;
@@ -123,8 +123,9 @@ unsigned char ayc_read_ts(unsigned char *tsfile, unsigned char *probedata)
       fseek(fptsfile, 0, SEEK_SET);
       if (len % PCKTSIZE)
       {
-         printf("size of ts file is not multiple of 188. This is not a valid ts file.\n");
-         exit(ERR_TS_CORRUPT);
+         printf("size of ts file is not multiple of 188. This might be no valid ts file.\n");
+         // seems to happen in real word to have truncated recordings
+         //exit(ERR_TS_CORRUPT);
       }
    }
 
@@ -170,6 +171,7 @@ unsigned char ayc_read_ts(unsigned char *tsfile, unsigned char *probedata)
                         memcpy(&probedata[probecount*16], data, 16);
                         memcpy(probefile + PCKTSIZE * probecount, buf, PCKTSIZE);
                         probecount++;
+                        *probeparity = parity;
                      }
                   }
                } // valid pid

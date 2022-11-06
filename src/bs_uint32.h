@@ -2,6 +2,8 @@
 #ifndef AYCW_UINT32_H_
 #define AYCW_UINT32_H_
 
+#define AYC_PARALLEL_MODE_STRING    "integer 32 bit"
+
 typedef uint32_t dvbcsa_bs_word_t;
 
 #define BS_BATCH_SIZE 32

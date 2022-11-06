@@ -157,7 +157,7 @@ AYCW_INLINE void aycw__vInitVariables(aycw_tstPQXYZ * stPQXYZ,
     *BS_Streambit1 = BS_VAL8(00);
 }
 
-static AYCW_INLINE void aycw__vInitShiftRegister(dvbcsa_bs_word_t * BS_key, aycw_tstRegister * stRegister)
+AYCW_INLINE void aycw__vInitShiftRegister(dvbcsa_bs_word_t * BS_key, aycw_tstRegister * stRegister)
 {
    uint8 i;
    /******   A & B init ********************/
@@ -312,7 +312,7 @@ AYCW_INLINE void aycw__vInitRound(uint8 j, uint8 u8Byte,
             return 0;*/
         BS_TMP_B[k] = BS_XOR(BS_TMP_B[k], ( (j & 0x1)?bs_data_sb0[k+4+u8Byte*8]:bs_data_sb0[k+u8Byte*8]));
 
-        BS_TMP_B_Result[k]  = BS_AND(BS_TMP_B[k], BS_NOT(stPQXYZ->BS_P)); //Die nicht zu rotierenden Daten zunächst zwischenspeichern.
+        BS_TMP_B_Result[k]  = BS_AND(BS_TMP_B[k], BS_NOT(stPQXYZ->BS_P)); //Die nicht zu rotierenden Daten zunï¿½chst zwischenspeichern.
 
     }
     /* yet rotate B */
@@ -433,7 +433,7 @@ AYCW_INLINE void aycw__vRound(aycw_tstPQXYZ     *stPQXYZ,
         BS_TMP_B[k] = BS_TMP_B[k] ^ A_tBITVALUE(&u32IV, 0, k);   
         BS_ConverToIntArray(tmpIntArray,B_BS,40);
 #endif
-        BS_TMP_B_Result[k]  = BS_AND(BS_TMP_B[k], BS_NOT(stPQXYZ->BS_P)); //Die nicht zu rotierenden Daten zunächst zwischenspeichern.
+        BS_TMP_B_Result[k]  = BS_AND(BS_TMP_B[k], BS_NOT(stPQXYZ->BS_P)); //Die nicht zu rotierenden Daten zunï¿½chst zwischenspeichern.
 
     //  BS_ConverToIntArray(tmpIntArray,B_BS,40);
         //B: 0x00000006baf6a617

@@ -16,9 +16,9 @@
 
 
 /* table 19,27,55 is achieved from table 17, 35, 8,... by applying 7-x to lower 3 bits */
-static const uint8 bf_key_perm[64] = { 19, 27, 55, 46, 1, 15, 36, 22, 56, 61, 39, 21, 54, 58, 50, 28, 7, 29, 51, 6, 33, 35, 20, 16, 47, 30, 32, 63, 10, 11, 4, 38, 62, 26, 40, 18, 12, 52, 37, 53, 23, 59, 41, 17, 31, 0, 25, 43, 44, 14, 2, 13, 45, 48, 3, 60, 49, 8, 34, 5, 9, 42, 57, 24, };
+static const uint8_t bf_key_perm[64] = { 19, 27, 55, 46, 1, 15, 36, 22, 56, 61, 39, 21, 54, 58, 50, 28, 7, 29, 51, 6, 33, 35, 20, 16, 47, 30, 32, 63, 10, 11, 4, 38, 62, 26, 40, 18, 12, 52, 37, 53, 23, 59, 41, 17, 31, 0, 25, 43, 44, 14, 2, 13, 45, 48, 3, 60, 49, 8, 34, 5, 9, 42, 57, 24, };
 
-/*static const uint8 bf_key_perm[64] = {17, 35, 8, 6, 41, 48, 28, 20, 27, 53, 61, 49, 18, 32, 58, 63, 23, 19, 36, 38, 1, 52, 26, 0, 33, 3, 12, 13, 56, 39, 25, 40, 50, 34, 51, 11, 21, 47, 29, 57, 44, 30, 7, 24, 22, 46, 60, 16, 59, 4, 55, 42, 10, 5, 9, 43, 31, 62, 45, 14, 2, 37, 15, 54}; */
+/*static const uint8_t bf_key_perm[64] = {17, 35, 8, 6, 41, 48, 28, 20, 27, 53, 61, 49, 18, 32, 58, 63, 23, 19, 36, 38, 1, 52, 26, 0, 33, 3, 12, 13, 56, 39, 25, 40, 50, 34, 51, 11, 21, 47, 29, 57, 44, 30, 7, 24, 22, 46, 60, 16, 59, 4, 55, 42, 10, 5, 9, 43, 31, 62, 45, 14, 2, 37, 15, 54}; */
 
 void AYCW_INLINE aycw_block_key_perm(dvbcsa_bs_word_t* in, dvbcsa_bs_word_t* out)
 {
@@ -332,7 +332,7 @@ void aycw_block_decrypt(const dvbcsa_bs_word_t* keys, dvbcsa_bs_word_t* r)
 #ifdef BLOCKDEBUG
       {
          // debug dump slice 0 regs before 1st shift
-         uint8 dump[9]r6xK_,sout,r7xS_;
+         uint8_t dump[9]r6xK_,sout,r7xS_;
          aycw_extractbsdata(r, 0, 64+8, dump);
          aycw_extractbsdata(&r6xK, 0, 8, &r6xK_);
          aycw_extractbsdata(&sbox_out, 0, 8, &sout);

@@ -35,12 +35,7 @@
 #define RESUMEFILENAME  "resume"
 #define FOUNDFILENAME   "keyfound.cwl"
 
-/****************** globals ***********************/
-/* store cw bytes 0..3 and 4 without checksum for easy incrementing */
-uint32 currentkey32     = 0;
-uint32 stopkey32        = -1;
-
-void ayc_printhexbytes(unsigned char *c, uint8 len)
+void ayc_printhexbytes(unsigned char *c, uint8_t len)
 {
    int i;
    for (i = 0; i<len; i++)
@@ -82,7 +77,7 @@ void aycw_performance_start(void)
 }
 
 /* print performance measure to console */
-void aycw_perf_show(void)
+void aycw_perf_show(uint64_t u64Currentkey, uint64_t u64Stopkey)
 {
    const char prop[] = "|/-\\";
 
@@ -109,15 +104,15 @@ void aycw_perf_show(void)
          printf("avg: %.3f Mcw/s  ", ((float)KEYSPERINNERLOOP*DIVIDER / ((float)totalticks / totalloops)) / 1000);
       }
       printf("%02X %02X %02X [] %02X .. .. []\r",
-         currentkey32 >> 24,
-         currentkey32 >> 16 & 0xFF,
-         currentkey32 >> 8 & 0xFF,
-         currentkey32 & 0xFF);
+         u64Currentkey >> 24,
+         u64Currentkey >> 16 & 0xFF,
+         u64Currentkey >> 8 & 0xFF,
+         u64Currentkey & 0xFF);
    }
 }
 
 /* save to the current key to file to remember brute force progress */
-void aycw_write_resumefile(void)
+void aycw_write_resumefile(uint64_t u64Currentkey)
 {
    static int divider = 10;    /* long live the ssd */
    FILE * filehdl;
@@ -130,7 +125,7 @@ void aycw_write_resumefile(void)
       {
          //printf("\nwriting resume file\n");
          sprintf(string, "%02X %02X %02X %02X %02X %02X %02X %02X\n",
-            (uint8)(currentkey32 >> 24), (uint8)(currentkey32 >> 16), (uint8)(currentkey32 >> 8), 0, (uint8)currentkey32, 0, 0, 0);
+            (uint8_t)(u64Currentkey >> 24), (uint8_t)(u64Currentkey >> 16), (uint8_t)(u64Currentkey >> 8), 0, (uint8_t)u64Currentkey, 0, 0, 0);
          fwrite(string, 1, strlen(string), filehdl);
          fclose(filehdl);
       }
@@ -141,7 +136,7 @@ void aycw_write_resumefile(void)
    }
 }
 
-void aycw_read_resumefile(uint32 *key)
+void aycw_read_resumefile(uint32_t *key)
 {
    FILE * filehdl;
    unsigned char buf[8 * 3 + 2 + 1];
@@ -295,7 +290,8 @@ int main(int argc, char *argv[])
    char*    tsfile = NULL;
    unsigned char probedata[3][16];
    int      probeparity;
-
+   uint64_t u64Currentkey     = 0;
+   uint64_t u64Stopkey        = -1;
 
    /************** stream ***************/
    dvbcsa_bs_word_t     bs_data_sb0[8 * 16];    // constant scrambled data blocks SB0 + SB1, global init for stream, da_diett.pdf 5.1
@@ -311,7 +307,7 @@ int main(int argc, char *argv[])
 #endif
    dvbcsa_bs_word_t  candidates;       /* 1 marks a key candidate in the batch */
 
-   uint8 keylist[BS_BATCH_SIZE][8];     /* the list of keys for the batch run in non-bitsliced form */
+   uint8_t keylist[BS_BATCH_SIZE][8];     /* the list of keys for the batch run in non-bitsliced form */
 
 
     while((opt = getopt(argc, argv, "t:a:o:bs")) != -1) 
@@ -322,10 +318,10 @@ int main(int argc, char *argv[])
                 tsfile = optarg;
                 break; 
             case 'a': 
-                currentkey32 = ayc_scan_cw_param(optarg);
+                u64Currentkey = ayc_scan_cw_param(optarg);
                 break; 
             case 'o': 
-                stopkey32 = ayc_scan_cw_param(optarg);
+                u64Stopkey = ayc_scan_cw_param(optarg);
                 break; 
             case 'b': 
                 benchmark = 1;
@@ -372,25 +368,25 @@ int main(int argc, char *argv[])
           { 0xB2, 0x74, 0x85, 0x51, 0xF9, 0x3C, 0x9B, 0xD2,  0x30, 0x9E, 0x8E, 0x78, 0xFB, 0x16, 0x55, 0xA9},
           { 0x25, 0x2D, 0x3D, 0xAB, 0x5E, 0x3B, 0x31, 0x39,  0xFE, 0xDF, 0xCD, 0x84, 0x51, 0x5A, 0x86, 0x4A},
           { 0xD0, 0xE1, 0x78, 0x48, 0xB3, 0x41, 0x63, 0x22,  0x25, 0xA3, 0x63, 0x0A, 0x0E, 0xD3, 0x1C, 0x70} };
-       currentkey32 = 0x00 << 24 | 0x11 << 16 | 0x15 << 8 | 0x00;
+       u64Currentkey = 0x00 << 24 | 0x11 << 16 | 0x15 << 8 | 0x00;
        /* key   00 11 22 33  44 00 00 44 decrypts to
                    000001ff11111111aa11111111111155
                    000001ff11111111aa11111111111156
                    000001ff11111111aa11111111111157  */
        /* expected stream output in IB1 is 6F CA 96 27 30 91 03 71 */
-       stopkey32 = -1;   /* search up to FFFFF... */
+       u64Stopkey = -1;   /* search up to FFFFF... */
     }
     else
     {
         ayc_read_ts(tsfile, &probedata[0][0], &probeparity);
-        aycw_read_resumefile(&currentkey32);
+        aycw_read_resumefile(&u64Currentkey);
     }
 
 
    printf("start key is %02X %02X %02X [] %02X %02X %02X []\n",
-      (uint8)(currentkey32 >> 24), (uint8)(currentkey32 >> 16), (uint8)(currentkey32 >> 8), (uint8)currentkey32,0,0);
+      (uint8_t)(u64Currentkey >> 24), (uint8_t)(u64Currentkey >> 16), (uint8_t)(u64Currentkey >> 8), (uint8_t)u64Currentkey,0,0);
    printf("stop key is  %02X %02X %02X [] %02X %02X %02X []\n",
-      (uint8)(stopkey32 >> 24), (uint8)(stopkey32 >> 16), (uint8)(stopkey32 >> 8), (uint8)stopkey32, 0xFF, 0xFF);
+      (uint8_t)(u64Stopkey >> 24), (uint8_t)(u64Stopkey >> 16), (uint8_t)(u64Stopkey >> 8), (uint8_t)u64Stopkey, 0xFF, 0xFF);
 
 
 #ifdef WIN32
@@ -412,7 +408,7 @@ int main(int argc, char *argv[])
    /************* outer loop ******************/
    // run over whole key search space
    // key bytes incremented: 0 + 1 + 2 + 4 
-   while (currentkey32 <= stopkey32)
+   while (u64Currentkey <= u64Stopkey)
    {
       aycw_performance_start();
 
@@ -433,11 +429,11 @@ int main(int argc, char *argv[])
 #endif
       for (i = 0; i < BS_BATCH_SIZE; i++)
       {
-         keylist[i][0] = currentkey32 >> 24;
-         keylist[i][1] = currentkey32 >> 16;
-         keylist[i][2] = currentkey32 >> 8;
+         keylist[i][0] = u64Currentkey >> 24;
+         keylist[i][1] = u64Currentkey >> 16;
+         keylist[i][2] = u64Currentkey >> 8;
          keylist[i][3] = keylist[i][0] + keylist[i][1] + keylist[i][2];
-         keylist[i][4] = currentkey32;
+         keylist[i][4] = u64Currentkey;
          keylist[i][5] = 0;
          keylist[i][6] = (0x0100 >> BS_BATCH_SHIFT)*i;
          keylist[i][7] = keylist[i][4] + keylist[i][5] + keylist[i][6];
@@ -488,7 +484,7 @@ int main(int argc, char *argv[])
 
          {
 /*#ifdef USEALLBITSLICE
-            uint8 dump[8];
+            uint8_t dump[8];
             aycw_extractbsdata(r, 0, 64, dump);
             printf("%02x %02x %02x %02x  %02x %02x %02x %02x\n",dump[0],dump[1],dump[2],dump[3],dump[4],dump[5],dump[6],dump[7]);
 #else
@@ -561,13 +557,13 @@ int main(int argc, char *argv[])
       /***********************************************************************************************************************/
       /***********************************************************************************************************************/
       /***********************************************************************************************************************/
-      aycw_perf_show();
+      aycw_perf_show(u64Currentkey, u64Stopkey);
 
-      if (!benchmark) aycw_write_resumefile();
+      if (!benchmark) aycw_write_resumefile(u64Currentkey);
 
-      currentkey32++;   // prepare for next 2^16 keys
+      u64Currentkey++;   // prepare for next 2^16 keys
 
-   };  // while (currentkey32 < stopkey32)
+   };  // while (u64Currentkey < u64Stopkey)
 
    printf("\nStop key reached. No key found\n");
    exit(WORKPACKAGEFINISHED);

@@ -357,7 +357,7 @@ const unsigned char bs_tc_expected[32*4][16] = {
 
 int aycw_check_bs_testcases(dvbcsa_bs_word_t	*r)
 {
-   uint8 i, j, tmp;
+   uint8_t i, j, tmp;
 
    /* check bytesliced r data bytes against bs_tc_expected */
    for (i = 0; i<BS_BATCH_SIZE; i++)

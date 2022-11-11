@@ -4,9 +4,9 @@
 #if PARALLEL_MODE==PARALLEL_32_INT
 
 /* input transpose key from normal to bitslice
-uint8 key[BS_BATCH_SIZE][8]  -> dvbcsa_bs_word_t block row[64] */
+uint8_t key[BS_BATCH_SIZE][8]  -> dvbcsa_bs_word_t block row[64] */
 
-void aycw_key_transpose(const uint8 *key, dvbcsa_bs_word_t *row)
+void aycw_key_transpose(const uint8_t *key, dvbcsa_bs_word_t *row)
 {
    int i, j, k;
 

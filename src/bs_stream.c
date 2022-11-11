@@ -9,7 +9,7 @@ void aycw__vRound(aycw_tstPQXYZ * stPQXYZ,
                    dvbcsa_bs_word_t * BS_Streambit0,dvbcsa_bs_word_t * BS_Streambit1);
 
 /* calculate init value of stream  */
-void aycw__vInitRound(uint8 j, uint8 u8Byte, /*dvbcsa_bs_word_t iv, */
+void aycw__vInitRound(uint8_t j, uint8_t u8Byte, /*dvbcsa_bs_word_t iv, */
                        aycw_tstPQXYZ * stPQXYZ ,
                        aycw_tstCDEF *stCDEF, 
                        aycw_tstRegister *stRegister,
@@ -138,7 +138,7 @@ AYCW_INLINE void aycw__vInitVariables(aycw_tstPQXYZ * stPQXYZ,
                           dvbcsa_bs_word_t * BS_Streambit0,      
                           dvbcsa_bs_word_t * BS_Streambit1)
 {
-    uint8 i;
+    uint8_t i;
     /* init values */
     for (i = 0; i < 4; i++)
     {
@@ -159,7 +159,7 @@ AYCW_INLINE void aycw__vInitVariables(aycw_tstPQXYZ * stPQXYZ,
 
 AYCW_INLINE void aycw__vInitShiftRegister(dvbcsa_bs_word_t * BS_key, aycw_tstRegister * stRegister)
 {
-   uint8 i;
+   uint8_t i;
    /******   A & B init ********************/
    /* set everything outside bit 32 to zero */
 
@@ -193,7 +193,7 @@ AYCW_INLINE void aycw__vInitShiftRegister(dvbcsa_bs_word_t * BS_key, aycw_tstReg
 }
 
 
-AYCW_INLINE dvbcsa_bs_word_t aycw__BitExpandOfByteToBsWord(const uint8 *u8ByteToExpand, const uint8 u8Byte, const uint8 u8Bit)
+AYCW_INLINE dvbcsa_bs_word_t aycw__BitExpandOfByteToBsWord(const uint8_t *u8ByteToExpand, const uint8_t u8Byte, const uint8_t u8Bit)
 {
    dvbcsa_bs_word_t ret;
    if ((0x1 << u8Bit) & u8ByteToExpand[u8Byte])
@@ -208,9 +208,9 @@ AYCW_INLINE dvbcsa_bs_word_t aycw__BitExpandOfByteToBsWord(const uint8 *u8ByteTo
 }
 
 
-AYCW_INLINE void aycw__ShiftRegisterLeft(dvbcsa_bs_word_t * RegisterValue, uint8 u8ShiftValue, uint8 u8Arraysize)
+AYCW_INLINE void aycw__ShiftRegisterLeft(dvbcsa_bs_word_t * RegisterValue, uint8_t u8ShiftValue, uint8_t u8Arraysize)
 {
-    uint8 i;
+    uint8_t i;
     /* move first */
     for ( i = (u8Arraysize-1); i >= u8ShiftValue; i--)
     {
@@ -265,17 +265,17 @@ void aycw__vCaculatePQXYZ(dvbcsa_bs_word_t * A_local, aycw_tstPQXYZ * stPQXYZ)
 
 }
 /****** execute init round **************/
-AYCW_INLINE void aycw__vInitRound(uint8 j, uint8 u8Byte,
+AYCW_INLINE void aycw__vInitRound(uint8_t j, uint8_t u8Byte,
                                   aycw_tstPQXYZ * stPQXYZ ,
                                   aycw_tstCDEF *stCDEF, 
                                   aycw_tstRegister *stRegister,
                                   dvbcsa_bs_word_t *bs_data_sb0)
 {
 
-    uint8 k;
+    uint8_t k;
     dvbcsa_bs_word_t /*tmp,*/tmp0,tmp4,tmp1,tmp3;
-    uint8 b;
-    /*uint8 u32IV;*/
+    uint8_t b;
+    /*uint8_t u32IV;*/
     dvbcsa_bs_word_t  BS_TMP_B[5];
     dvbcsa_bs_word_t  BS_TMP_B_Result[4];
     dvbcsa_bs_word_t  BS_Bout[4];
@@ -402,9 +402,9 @@ AYCW_INLINE void aycw__vRound(aycw_tstPQXYZ     *stPQXYZ,
                               dvbcsa_bs_word_t  *BS_Streambit1)
 {
 
-    uint8 k;
+    uint8_t k;
     dvbcsa_bs_word_t tmp0,tmp4,tmp1,tmp3;
-    uint8 b;
+    uint8_t b;
     dvbcsa_bs_word_t  BS_TMP_B[5];
     dvbcsa_bs_word_t  BS_TMP_B_Result[4];
     dvbcsa_bs_word_t  BS_Bout[4];
@@ -616,7 +616,7 @@ set up data used for stream. Depends on scrambled data only, so can be global
 */
 void aycw_init_stream(const char *iv, dvbcsa_bs_word_t *bs_data_sb0)
 {
-    uint8 i,j;
+    uint8_t i,j;
 
     for (j = 0; j < 16; j++)
     {

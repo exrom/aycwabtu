@@ -22,7 +22,7 @@ typedef unsigned char   uint8;
 typedef int             batch;
 
  
-uint8 block_sbox(uint8 in)
+uint8_t block_sbox(uint8_t in)
 {
     batch b_7 = (in>>7)&1;
     batch b_6 = (in>>6)&1;

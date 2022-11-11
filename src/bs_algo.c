@@ -108,14 +108,14 @@ void aycw_bs_increment_keys_inner(dvbcsa_bs_word_t *keys_bs)
 
 
 
-void aycw_assert_key_transpose(uint8 *keylist, dvbcsa_bs_word_t *bs_keys)
+void aycw_assert_key_transpose(uint8_t *keylist, dvbcsa_bs_word_t *bs_keys)
 {
 #ifdef SELFTEST
-   uint8 i, k;
-   uint8 mykeylist[BS_BATCH_SIZE][8];
-   uint8 keylist2[BS_BATCH_SIZE][8];
+   uint8_t i, k;
+   uint8_t mykeylist[BS_BATCH_SIZE][8];
+   uint8_t keylist2[BS_BATCH_SIZE][8];
 
-   uint8 *a, *b, *c;
+   uint8_t *a, *b, *c;
 
    memset(mykeylist, 0, sizeof(mykeylist));
    memcpy(keylist2, keylist, BS_BATCH_SIZE * 8);
@@ -141,22 +141,22 @@ void aycw_assert_key_transpose(uint8 *keylist, dvbcsa_bs_word_t *bs_keys)
 void aycw_assertKeyBatch(dvbcsa_bs_word_t *keys_bs)
 {
 #ifdef SELFTEST
-   uint8 keys[BS_BATCH_SIZE][8];
-   uint8 i,j;
+   uint8_t keys[BS_BATCH_SIZE][8];
+   uint8_t i,j;
 
    /* calc keys in normal form */
    memset(keys, 0, BS_BATCH_SIZE * 8);
    for (i = 0; i<BS_BATCH_SIZE; i++)
    {
-      aycw_extractbsdata(keys_bs, i, 64, (uint8*)&keys[i]);
+      aycw_extractbsdata(keys_bs, i, 64, (uint8_t *)&keys[i]);
    }
 
    /* checksum correct? */
    for (i = 0; i < BS_BATCH_SIZE; i++)
    {
-      if ((uint8)(keys[i][0] + keys[i][1] + keys[i][2]) != keys[i][3])
+      if ((uint8_t)(keys[i][0] + keys[i][1] + keys[i][2]) != keys[i][3])
          aycw_fatal_error("aycw_assertKeyBatch() checksum wrong\n");
-      if ((uint8)(keys[i][4] + keys[i][5] + keys[i][6]) != keys[i][7])
+      if ((uint8_t)(keys[i][4] + keys[i][5] + keys[i][6]) != keys[i][7])
          aycw_fatal_error("aycw_assertKeyBatch() checksum wrong\n");
    }
 
@@ -231,7 +231,7 @@ extract the data of one slice from a bitsliced array
 @param   len[in]         number of bits to extract (e.g. 64 for a key bs array)
 @param   data[out]       pointer to regular data. this array must be at least len/8 bytes large!
 */
-void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned char len, uint8* extracteddata)
+void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned char len, uint8_t* extracteddata)
 {
    unsigned char     i, j, tmp;
 
@@ -243,7 +243,7 @@ void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned
          dvbcsa_bs_word_t  bs_tmp;
          tmp = tmp >> 1;
          bs_tmp = BS_AND(BS_SHR(bs_data[i * 8 + j], slice), BS_VAL_LSDW(1));
-         tmp |= (uint8)BS_EXTLS32(BS_SHL(bs_tmp, 7));
+         tmp |= (uint8_t)BS_EXTLS32(BS_SHL(bs_tmp, 7));
       }
       extracteddata[i] = tmp;
    }
@@ -257,7 +257,7 @@ void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned
    @param   data[in]          decryption result in bit/byte-sliced form
    @return  1 if successful
 */
-void aycw_assert_decrypt_result(unsigned char *probedata, uint8 *keylist, dvbcsa_bs_word_t *data)
+void aycw_assert_decrypt_result(unsigned char *probedata, uint8_t *keylist, dvbcsa_bs_word_t *data)
 {
 #ifdef SELFTEST
    int            i,j;

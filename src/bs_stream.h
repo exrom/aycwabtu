@@ -34,9 +34,9 @@ typedef struct aycw_stRegister aycw_tstRegister;
 void aycw_stream_key_schedule(const char*, char *);
 
 /* transform regular key array key_in into bitsliced array key_bs_out */
-void aycw_key_transpose(const uint8 *key_in, dvbcsa_bs_word_t *key_bs_out);
+void aycw_key_transpose(const uint8_t *key_in, dvbcsa_bs_word_t *key_bs_out);
 
-void aycw_vTransformKey(dvbcsa_bs_word_t * BS_key, char * cw, uint8 keyposition);
+void aycw_vTransformKey(dvbcsa_bs_word_t * BS_key, char * cw, uint8_t keyposition);
 
 void aycw_init_stream(const char *iv, dvbcsa_bs_word_t *bs_data_sb0);
 

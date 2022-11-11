@@ -5,9 +5,6 @@ CSA brute force bitslice stream and block prototypes
 #define aycw_H
 
 #include <stdint.h>
-typedef uint8_t      uint8;
-typedef uint16_t     uint16;
-typedef uint32_t     uint32;
 
 #define PARALLEL_32_INT       1
 #define PARALLEL_128_SSE2     2

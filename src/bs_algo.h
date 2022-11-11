@@ -1,9 +1,9 @@
 
-void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned char len, uint8* extracteddata);
+void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned char len, uint8_t* extracteddata);
 
-void aycw_assert_decrypt_result(unsigned char *probedata, uint8 *keylist, dvbcsa_bs_word_t *bys_data);
+void aycw_assert_decrypt_result(unsigned char *probedata, uint8_t *keylist, dvbcsa_bs_word_t *bys_data);
 
-void aycw_assert_key_transpose(uint8 *keylist, dvbcsa_bs_word_t *bs_keys);
+void aycw_assert_key_transpose(uint8_t *keylist, dvbcsa_bs_word_t *bs_keys);
 
 void aycw_assert_stream(dvbcsa_bs_word_t * data, unsigned int outbits, dvbcsa_bs_word_t * BS_key, dvbcsa_bs_word_t *bs_data_sb0);
 

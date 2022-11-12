@@ -22,37 +22,51 @@
 /*
 control word iteration strategy:
 
-        +---+---+-------+-------------  u64Currentkey
-        |   |   |       |
-        |   |   |       |   +---------  INNERBATCH
-        |   |   |       |   |   
-        |   |   |       |   |   +-----  BS_BATCH_SIZE
+        +---+---+-------+---+---+-----  u64Currentkey
+        |   |   |       |   |   |
+
+        |   |   |       |   +---+-----  INNERBATCH /  BS_BATCH_SIZE
         |   |   |       |   |   |
         |   |   |       |   |   |
         |   |   |       |   |   |
         |   |   |       |   |   |
 byte    00  11  22 [33] 44  55  66 [77]
 
+Control words are iterated starting at highest byte (66, then 55,...)
+u64Currentkey holds the 48 bits where its lsb is lsb of byte 66.
+Checksum bytes [33] and [77] are recalculated and not stored.
 
-BS_BATCH_SIZE:
-number of keys processed in parallel bitslice manner
+BS_BATCH_SIZE - the "batch run".
+Number of keys processed in parallel bitslice manner
 by one thread at at time.
-== 32 bits for uint32
-== 128 bits for sse4_2
+uint32      ->  32 keys at once
+sse4_2      ->  128 keys at once
                     
-INNERBATCH:
-inner loop: number of executed threads
-thread 0 starts at offset 0
-thread 1 starts at offset BS_BATCH_SIZE
-thread 2 starts at offset 2*BS_BATCH_SIZE
-...
-thread INNERBATCH starts at offset INNERBATCH*BS_BATCH_SIZE
-                    
-                    
-u64Currentkey:
-outer loop, always 32 bit, 
-incremented after all threads are finished
+INNERBATCH - the "inner loop"
+to transpose keys from regular representation (u64Currentkey) into
+bit sliced representation (keys_bs) is costly. Therefore transposition
+is done only when necessary.
+As an intermediate step, the incrementation of keys is done within its
+bit sliced representation - aycw_bs_increment_keys_inner() does this.
+This is currently fixed for byte 55 and 66. The lsb bits are covered 
+by the batch run. The remaining of these 16 bits are covered by 
+aycw_bs_increment_keys_inner().
 
+TBD: where to start parallel threads and how many?
+                    
+u64Currentkey - the "outer loop". 
+This loop should be executed as seldom as possible (in order to not throttle
+performance) but as often as possible (to not slow down console 
+throughput update).
+On every outer loop, u64Currentkey is incremented by inner*batch.
+The outer loop runs over the whole key space (if not limited by -a/-o).
+
+
+Test strategy: aycwabtu's self test will check if a key is found on every
+batch position (reveals transposition issues).
+Also the inner loop shall be covered (aycw_bs_increment_keys_inner issues).
+At least two consecutive runs for outer loop shall be done (reveals 
+incrementation issues).
 
 */
 
@@ -63,7 +77,7 @@ bool loop_perform_key_search(
    void (*progress_callback)(uint64_t u64ProgressKey, uint64_t u64Stopkey),
    unsigned char *retcw)
 {
-   int      i, k;
+   uint64_t      i, k;
 
    /************** stream ***************/
    dvbcsa_bs_word_t     bs_data_sb0[8 * 16];    // constant scrambled data blocks SB0 + SB1, global init for stream, da_diett.pdf 5.1
@@ -97,35 +111,18 @@ bool loop_perform_key_search(
 #endif
 
    /************* outer loop ******************/
-   // run over whole key search space
-   // key bytes incremented: 0 + 1 + 2 + 4 
    while (u64Currentkey <= u64Stopkey)
    {
 
-      /* bytes 5 + 6 belong to the inner loop
-         aycw_bs_increment_keys_inner() increments every slice by one starting byte 5 LSB (bit 40) 
-         from byte 6 MSB down the slices spread key ranges.
-         example: BS_BATCH_SIZE=32  -> topmost 5 bits of byte 6 (2^5==32) contain different values for batches
-         
-         batch    byte 5   byte 6
-         0        00       00
-         1        00       08
-         2        00       10
-         3        00       18
-         .....
-         31       00       F8         */
-#if BS_BATCH_SIZE>256
-#error keylist calculation cannot yet handle BS_BATCH_SIZE>256
-#endif
       for (i = 0; i < BS_BATCH_SIZE; i++)
       {
-         keylist[i][0] = u64Currentkey >> 24;
-         keylist[i][1] = u64Currentkey >> 16;
-         keylist[i][2] = u64Currentkey >> 8;
+         keylist[i][0] = (u64Currentkey + i) >> 40;
+         keylist[i][1] = (u64Currentkey + i) >> 32;
+         keylist[i][2] = (u64Currentkey + i) >> 24;
          keylist[i][3] = keylist[i][0] + keylist[i][1] + keylist[i][2];
-         keylist[i][4] = u64Currentkey;
-         keylist[i][5] = 0;
-         keylist[i][6] = (0x0100 >> BS_BATCH_SHIFT)*i;
+         keylist[i][4] = (u64Currentkey + i) >> 16;
+         keylist[i][5] = (u64Currentkey + i) >> 8;
+         keylist[i][6] = (u64Currentkey + i);
          keylist[i][7] = keylist[i][4] + keylist[i][5] + keylist[i][6];
       }
 /***********************************************************************************************************************/
@@ -136,13 +133,14 @@ bool loop_perform_key_search(
       // check if all keys were transposed correctly
       aycw_assert_key_transpose(&keylist[0][0], keys_bs);
 
-      // inner loop: process 2^16 keys - see aycw_bs_increment_keys_inner()
+      // inner loop: see aycw_bs_increment_keys_inner()
       for (k = 0; k < KEYSPERINNERLOOP / BS_BATCH_SIZE; k++)
       {
 
+#ifdef SELFTEST
          /* check if initial (outer) key and subsequent (inner) key batches are correct */
          aycw_assertKeyBatch(keys_bs);
-
+#endif
          /************** stream ***************/
          aycw_stream_decrypt(&bs_data_ib0[64], 25, keys_bs, bs_data_sb0);    // 3 bytes required for PES check, 25 bits for some reason
 
@@ -243,7 +241,7 @@ bool loop_perform_key_search(
       /***********************************************************************************************************************/
       (*progress_callback)(u64Currentkey, u64Stopkey);
 
-      u64Currentkey++;   // prepare for next 2^16 keys
+      u64Currentkey += KEYSPERINNERLOOP*BS_BATCH_SIZE;   // outer loop increment
 
    };  // while (u64Currentkey <= u64Stopkey)
 

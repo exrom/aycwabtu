@@ -23,6 +23,7 @@
 
 #include "loop.h"
 #include "ts.h"
+#include "helper.h"
 
 #define VERSION   "V2.0"
 
@@ -45,7 +46,7 @@ const ts_probe_t bench_data = {
       { 0xB2, 0x74, 0x85, 0x51, 0xF9, 0x3C, 0x9B, 0xD2,  0x30, 0x9E, 0x8E, 0x78, 0xFB, 0x16, 0x55, 0xA9},
       { 0x25, 0x2D, 0x3D, 0xAB, 0x5E, 0x3B, 0x31, 0x39,  0xFE, 0xDF, 0xCD, 0x84, 0x51, 0x5A, 0x86, 0x4A},
       { 0xD0, 0xE1, 0x78, 0x48, 0xB3, 0x41, 0x63, 0x22,  0x25, 0xA3, 0x63, 0x0A, 0x0E, 0xD3, 0x1C, 0x70} };
-const uint32_t u32BenchStartKey = 0x00112233;
+const uint64_t u64BenchStartKey = 0x00112233000000;
 
 
 
@@ -85,7 +86,7 @@ int totalloops = 0;
 int divider = 0;
 
 
-void aycw_performance_start(void)
+void aycw_performance_init(void)
 {
    if (!divider) time_start = aycw__getTicks_ms();
 }
@@ -248,7 +249,14 @@ uint32_t ayc_scan_cw_param(const char *string) {
         printf("key parameter format incorrect. 6 hex bytes expected.\n");
         usage();
     }
-    return tmp[0] << 24 | tmp[1] << 16 | tmp[2] << 8 | tmp[4];
+    return
+               ((uint64_t)tmp[0] << 40) +
+               ((uint64_t)tmp[1] << 32) +
+               ((uint64_t)tmp[2] << 24) +
+               
+               ((uint64_t)tmp[4] << 16) +
+               ((uint64_t)tmp[5] << 8) +
+               ((uint64_t)tmp[6]);
 }
 
 int main(int argc, char *argv[])
@@ -301,7 +309,7 @@ int main(int argc, char *argv[])
     /* check parameter plausibility */
     if ((!benchmark) && (!tsfile))
     {
-        printf("Neither ts filename provided nor benchmark enabled\n");
+        printf("Please provide ts filename or run benchmark\n");
         usage();
     }
     if (selftest)
@@ -318,7 +326,7 @@ int main(int argc, char *argv[])
     {
        printf("Benchmark mode enabled. Using internal ts data\n");
        memcpy(probedata, bench_data, sizeof(probedata));
-       u64Currentkey    = u32BenchStartKey;
+       u64Currentkey    = u64BenchStartKey;
        u64Stopkey       = UINT48_MAX;
     }
     else
@@ -328,17 +336,14 @@ int main(int argc, char *argv[])
     }
 
 
-   printf("start key is %02X %02X %02X [] %02X %02X %02X []\n",
-      (uint8_t)(u64Currentkey >> 24), (uint8_t)(u64Currentkey >> 16), (uint8_t)(u64Currentkey >> 8), (uint8_t)u64Currentkey,0,0);
-   printf("stop key is  %02X %02X %02X [] %02X %02X %02X []\n",
-      (uint8_t)(u64Stopkey >> 24), (uint8_t)(u64Stopkey >> 16), (uint8_t)(u64Stopkey >> 8), (uint8_t)u64Stopkey, 0xFF, 0xFF);
-
+   printf("start key: "); print_key(u64Currentkey);
+   printf("start key: "); print_key(u64Stopkey);
 
 #ifdef WIN32
    SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 #endif
 
-   aycw_performance_start();
+   aycw_performance_init();
    
    if (loop_perform_key_search(
          probedata, 
@@ -351,6 +356,7 @@ int main(int argc, char *argv[])
       printf("\nkey candidate successfully decrypted three packets\n");
       printf("KEY FOUND!!!    %02X %02X %02X [%02X]  %02X %02X %02X [%02X]\n",
          cw[0], cw[1], cw[2], cw[3], cw[4], cw[5], cw[6], cw[7]);
+         /*print_cw()*/
 
       if (tsfile) aycw_write_keyfoundfile(cw, probeparity, tsfile);
       exit(OK);

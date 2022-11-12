@@ -62,7 +62,17 @@ if this dll is missing: error while loading shared libraries.
 * block decrypt first (does not depend on stream). Then stream afterwards, stop XORing immediately 
   if foreseeable there is no PES header
 
+## building
+
+Install MSYS2 from https://github.com/msys2/msys2-installer/releases/download/2022-10-28/msys2-x86_64-20221028.exe.
+Add to PATH: C:\msys64\mingw64\bin and c:\msys64\usr\bin
+
+
 ## developers
+
+https://code.visualstudio.com/docs/cpp/config-mingw
+
+
 * after changing the code, run tests with SELFTEST enabled to make sure the algorithm still works. It's too easy to break things.
 * run "make check"
 * test all the batch size implementations

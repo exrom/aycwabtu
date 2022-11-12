@@ -28,6 +28,7 @@ libdvbcsa_src = \
 SRCS = \
 	src/main.c             \
 	src/loop.c             \
+	src/helper.c           \
 	src/bs_algo.c          \
 	src/bs_block.c         \
 	src/bs_block_ab.c      \

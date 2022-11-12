@@ -59,7 +59,10 @@ void aycw_bs_increment_keys_inner(dvbcsa_bs_word_t *keys_bs)
    dvbcsa_bs_word_t carry, carry1, sum456, co456;
 
    int i;
-
+#if (BS_BATCH_SHIFT > 16)
+/* With todays max. 9 (AVX-512), unlikely, this will ever happen. Just for completeness and better understanding  */
+#error inner increment supports only BS_BATCH_SHIFT <= 16
+#endif
    // increment byte 5 + 6 (except upper bits)
    carry = BS_VAL16(ffff);
    for (i = 40; i < 56 - BS_BATCH_SHIFT; i++)  
@@ -140,7 +143,6 @@ void aycw_assert_key_transpose(uint8_t *keylist, dvbcsa_bs_word_t *bs_keys)
 /* plausibility check if bs keys are correct */
 void aycw_assertKeyBatch(dvbcsa_bs_word_t *keys_bs)
 {
-#ifdef SELFTEST
    uint8_t keys[BS_BATCH_SIZE][8];
    uint8_t i,j;
 
@@ -161,27 +163,48 @@ void aycw_assertKeyBatch(dvbcsa_bs_word_t *keys_bs)
    }
 
    /* check key bytes of batches against each other */
+   /* checksum is not considered as there may/will be collisions with batch>8 */
+   uint64_t u64BatchMask = ((uint64_t)(BS_BATCH_SIZE-1));
+   //keys[127][6] = 0xFF;    // should fail on 128 bit batch
+   //keys[127][6] = 0x7F;    // should succeed on 128 bit batch
    for (i = 0; i < BS_BATCH_SIZE; i++)
    {
+      uint64_t    key_i = (uint64_t)
+             ((uint64_t)keys[i][0] << 40) +
+             ((uint64_t)keys[i][1] << 32) +
+             ((uint64_t)keys[i][2] << 24) +
+             
+             ((uint64_t)keys[i][4] << 16) +
+             ((uint64_t)keys[i][5] << 8) +
+             ((uint64_t)keys[i][6]);
+
       for (j = 0; j < i; j++)
       {
-         /* byte 0...4 + byte 5 and 6 (partly) of all batches need to be identical */
-         if (keys[i][0] != keys[j][0] || // key
-             keys[i][1] != keys[j][1] || // key
-             keys[i][2] != keys[j][2] || // key
-             keys[i][3] != keys[j][3] || // crc
-             keys[i][4] != keys[j][4] || // key
-             keys[i][5] != keys[j][5] || // zero
-             (keys[i][6] & (0xFF >> BS_BATCH_SHIFT)) != (keys[j][6] & (0xFF >> BS_BATCH_SHIFT)))  // all except upper bits are equal
+         uint64_t    key_j = (uint64_t)
+               ((uint64_t)keys[j][0] << 40) +
+               ((uint64_t)keys[j][1] << 32) +
+               ((uint64_t)keys[j][2] << 24) +
+               
+               ((uint64_t)keys[j][4] << 16) +
+               ((uint64_t)keys[j][5] << 8) +
+               ((uint64_t)keys[j][6]);
 
-             aycw_fatal_error("key bytes in batch error 1\n");
-            /* byte 5...7 of all batches need to be different */
-         if (keys[i][6] == keys[j][6] || // zero / batch divers
-             keys[i][7] == keys[j][7])   // crc
-             aycw_fatal_error("key bytes in batch error 2\n");
+
+         if ((key_i & ~u64BatchMask) != (key_j & ~u64BatchMask))
+         {
+             printf("i %d j %d key_i = %016llx  key_j = %016llx\n", i,j, key_i, key_j);
+             aycw_fatal_error("key batch assertion failed: upper keys bit unexpectedly different\n");
+         }
+
+         //keys[126][6] = keys[127][6] = 0x7F;    // should fail on 128 bit batch
+         //keys[126][5] = keys[127][5] = 0;       // should succeed on 128 bit batch
+         if ((key_i & u64BatchMask) == (key_j & u64BatchMask))
+         {
+             printf("i %d j %d key_i = %016llx  key_j = %016llx\n", i,j, key_i, key_j);
+             aycw_fatal_error("key batch assertion failed: lower keys bit unexpectedly same\n");
+         }
       }
    }
-#endif
 }
 
 /**
@@ -255,7 +278,6 @@ void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned
    @param   probedata[in]     encrypted packet data (regular) 
    @param   keylist[in]       BS_BATCH_SIZE keys in regular form
    @param   data[in]          decryption result in bit/byte-sliced form
-   @return  1 if successful
 */
 void aycw_assert_decrypt_result(unsigned char *probedata, uint8_t *keylist, dvbcsa_bs_word_t *data)
 {

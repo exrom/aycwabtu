@@ -6,7 +6,6 @@ GITHASH := $(shell git rev-parse --short HEAD)
 
 #https://stackoverflow.com/questions/1079832/how-can-i-configure-my-makefile-for-debug-and-release-builds
 CFLAGS      = \
-    -w                                  \
     -I src/libdvbcsa/dvbcsa             \
 	-finline-functions                  \
     -DGITHASH=\"$(GITHASH)\" \
@@ -28,6 +27,7 @@ libdvbcsa_src = \
 
 SRCS = \
 	src/main.c             \
+	src/loop.c             \
 	src/bs_algo.c          \
 	src/bs_block.c         \
 	src/bs_block_ab.c      \
@@ -72,17 +72,19 @@ RELDIR_SSE4_2 = release/sse4_2
 RELEXE_SSE4_2 = $(RELDIR_SSE4_2)/$(EXE)
 RELOBJS_SSE4_2 = $(addprefix $(RELDIR_SSE4_2)/, $(OBJS))
 
-.PHONY: all clean debug prep release remake
+.PHONY: all clean debug release remake dbg
 
 # Default build
-all: prep release debug
+all: release debug
 
 #
 # Debug rules
 #
 debug: $(DBGEXE_INT32) $(DBGEXE_SSE4_2)
+dbg: $(DBGEXE_SSE4_2)
+.SECONDARY: debug release dbg
 
-$(DBGDIR_INT32)/%.o: %.c prep
+$(DBGDIR_INT32)/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) -c -MD $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_INT32) $< -o $@
 
@@ -91,21 +93,22 @@ $(DBGEXE_INT32): $(DBGOBJS_INT32)
 	$(CC) $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_INT32) $^ -o $(DBGEXE_INT32)
 	@echo $@ created;echo
 
-$(DBGDIR_SSE4_2)/%.o: %.c prep
+$(DBGDIR_SSE4_2)/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) -c -MD $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_SSE4_2) $< -o $@
 
 $(DBGEXE_SSE4_2): $(DBGOBJS_SSE4_2)
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(DBGCFLAGS) $(CFLAGS_SSE4_2) $^ -o $(DBGEXE_SSE4_2)
-	@echo $@ created;echo
+	@echo $@ created ; echo
+	@gcc --version | head -n 1
 
 #
 # Release rules
 #
 release: $(RELEXE_INT32) $(RELEXE_SSE4_2)
 
-$(RELDIR_INT32)/%.o: %.c prep
+$(RELDIR_INT32)/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) -c -MD $(CFLAGS) $(RELCFLAGS) $(CFLAGS_INT32) $< -o $@
 
@@ -114,7 +117,7 @@ $(RELEXE_INT32): $(RELOBJS_INT32)
 	$(CC) $(CFLAGS) $(RELCFLAGS) $(CFLAGS_INT32) $^ -o $(RELEXE_INT32)
 	@echo $@ created;echo
 
-$(RELDIR_SSE4_2)/%.o: %.c prep
+$(RELDIR_SSE4_2)/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) -c -MD $(CFLAGS) $(RELCFLAGS) $(CFLAGS_SSE4_2) $< -o $@
 
@@ -122,6 +125,7 @@ $(RELEXE_SSE4_2): $(RELOBJS_SSE4_2)
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(RELCFLAGS) $(CFLAGS_SSE4_2) $^ -o $(RELEXE_SSE4_2)
 	@echo $@ created;echo
+
 
 # tsgen functionality 2b moved into main binary
 tsgen: 
@@ -136,8 +140,5 @@ check:
 clean:
 	rm -rf release debug
 
-prep: makefile
-	@gcc --version | head -n 1
-    
 include $(wildcard $(DBGDIR)/src/*.d $(RELDIR)/src/*.d)
 

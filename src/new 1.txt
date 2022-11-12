@@ -1,0 +1,8 @@
+
+#define INNERBATCH 96
+How did you select the number 96?
+according https://stackoverflow.com/questions/10178108/multithreading-openmp-how-many-parallel-threads
+it should be cores * ht
+you say, you have a Ryzen 1600, so according to https://en.wikipedia.org/wiki/Ryzen#CPUs_2 it should be 12 threads, right?
+
+

@@ -37,9 +37,9 @@ unsigned char* ayc_read_packet(unsigned char* buf, int *pid, int *crypted, int *
       10 encrypted even
       11 encrypted odd
    2  AFC   Adaption Field Control
-      1. 01 – no adaptation field, payload only
-      2. 10 – adaptation field only, no payload
-      3. 11 – adaptation field followed by payload
+      1. 01 - no adaptation field, payload only
+      2. 10 - adaptation field only, no payload
+      3. 11 - adaptation field followed by payload
       4. 00 - RESERVED for future use
       4  CC    Continuity Counter; counts 0 to 15 sequentially for packets of same PID value */
 
@@ -55,13 +55,13 @@ unsigned char* ayc_read_packet(unsigned char* buf, int *pid, int *crypted, int *
       switch (buf[3] >> 4 & 0x03)
       {
       case 1:
-         // 01 – no adaptation field, payload only
+         // 01 - no adaptation field, payload only
          return &buf[4];
       case 2:
-         // 10 – adaptation field only, no payload
+         // 10 - adaptation field only, no payload
          return NULL;
       case 3:
-         // 11 – adaptation field followed by payload
+         // 11 - adaptation field followed by payload
          if (buf[4] < 188 - 4 - 1 - 16)
          {
             unsigned char* data;

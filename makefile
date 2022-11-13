@@ -49,7 +49,7 @@ EXE             = aycwabtu
 #
 # Debug build settings
 #
-DBGCFLAGS = -O0 -DDEBUG
+DBGCFLAGS = -O0 -g -DDEBUG
 
 DBGDIR_INT32 = debug/int32
 DBGEXE_INT32 = $(DBGDIR_INT32)/$(EXE)

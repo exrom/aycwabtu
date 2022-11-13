@@ -26,5 +26,3 @@ void print_cw(uint8_t u8data[])
       u8data[6],
       u8data[7]);
 }
-
-

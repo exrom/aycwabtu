@@ -98,7 +98,7 @@ unsigned char* ayc_read_packet(unsigned char* buf, int *pid, int *crypted, int *
    @tsfile     filename string
    @probedata  array [3][16]
    */
-unsigned char ayc_read_ts(unsigned char *tsfile, unsigned char *probedata, int *probeparity)
+unsigned char ts_read_file(unsigned char *tsfile, unsigned char *probedata, int *probeparity)
 {
    unsigned long  len;
    FILE    *fptsfile;

@@ -141,5 +141,5 @@ check:
 clean:
 	rm -rf release debug
 
-include $(wildcard $(DBGDIR)/src/*.d $(RELDIR)/src/*.d)
+include $(wildcard $(DBGDIR_SSE4_2)/src/*.d $(RELDIR)/src/*.d)
 

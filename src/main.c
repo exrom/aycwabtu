@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        ayc_read_ts(tsfile, (uint8_t*) probedata, &probeparity);
+        ts_read_file(tsfile, (uint8_t*) probedata, &probeparity);
         aycw_read_resumefile(&u64Currentkey);
     }
 

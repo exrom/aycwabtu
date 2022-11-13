@@ -1,13 +1,9 @@
+#ifndef LOOP_h
+#define LOOP_h
+
 #include <stdint.h>
 #include <stdbool.h>
-
-#define PROBE_NUM_PACKETS        3
-#define PROBE_BYTES_PER_PACKET   16
-
-typedef struct ts_probe_tag
-{
-   unsigned char packet[PROBE_BYTES_PER_PACKET];
-} ts_probe_t[PROBE_NUM_PACKETS];
+#include "ts.h"
 
 
 bool loop_perform_key_search(
@@ -17,3 +13,5 @@ bool loop_perform_key_search(
    void (*progress_callback)(uint64_t u64ProgressKey, uint64_t u64Stopkey),
    unsigned char *retcw)
 ;
+
+#endif

@@ -1,7 +1,9 @@
+#include "loop.h"     /* ts_probe_t */
+
 
 void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned char len, uint8_t* extracteddata);
 
-void aycw_assert_decrypt_result(unsigned char *probedata, uint8_t *keylist, dvbcsa_bs_word_t *bys_data);
+void aycw_assert_decrypt_result(ts_probe_t probedata, uint8_t *keylist, dvbcsa_bs_word_t *bys_data);
 
 void aycw_assert_key_transpose(uint8_t *keylist, dvbcsa_bs_word_t *bs_keys);
 

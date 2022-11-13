@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "ts.h"
 #include "loop.h"
 #include "config.h"
 #include "bs_stream.h"
@@ -15,7 +16,12 @@
 /* key bits calculated in inner bs loop - do not change */
 #define INNERKEYBITS    16
 /* number of keys calculated in inner bs loop - do not change */
-#define KEYSPERINNERLOOP (1<<INNERKEYBITS)
+#define KEYSPERINNERLOOP 0x10000
+
+#if (KEYSPERINNERLOOP != (1<<INNERKEYBITS))
+#error setting of KEYSPERINNERLOOP incorrect
+#endif
+
 
 
 
@@ -70,6 +76,33 @@ incrementation issues).
 
 */
 
+
+/**
+ * From the Current key in regular representation generate
+ * - an array of keys for each batch slice in regular representation
+ * - the keys in bitsliced representation
+ * 
+ * */
+void loop_generate_key_batch(uint64_t u64Currentkey, uint8_t keylist[], dvbcsa_bs_word_t* keys_bs)
+{
+   uint64_t      i;
+
+   for (i = 0; i < BS_BATCH_SIZE; i++)
+   {
+      keylist[i*8+0] = (u64Currentkey + i) >> 40;
+      keylist[i*8+1] = (u64Currentkey + i) >> 32;
+      keylist[i*8+2] = (u64Currentkey + i) >> 24;
+      keylist[i*8+3] = keylist[i*8+0] + keylist[i*8+1] + keylist[i*8+2];
+      keylist[i*8+4] = (u64Currentkey + i) >> 16;
+      keylist[i*8+5] = (u64Currentkey + i) >> 8;
+      keylist[i*8+6] = (u64Currentkey + i);
+      keylist[i*8+7] = keylist[i*8+4] + keylist[i*8+5] + keylist[i*8+6];
+   }
+   aycw_key_transpose(keylist, keys_bs);
+   aycw_assert_key_transpose(keylist, keys_bs);
+}
+
+
 bool loop_perform_key_search(
    ts_probe_t probedata,
    uint64_t u64Currentkey, 
@@ -93,14 +126,14 @@ bool loop_perform_key_search(
 #endif
    dvbcsa_bs_word_t  candidates;       /* 1 marks a key candidate in the batch */
 
-   uint8_t keylist[BS_BATCH_SIZE][8];     /* the list of keys for the batch run in non-bitsliced form */
+   uint8_t keylist[BS_BATCH_SIZE*8];     /* the list of keys for the batch run in non-bitsliced form */
 
 
 
 
    aycw_init_block();
 
-   aycw_init_stream((uint8_t*) probedata, &bs_data_sb0);
+   aycw_init_stream((uint8_t*) probedata, bs_data_sb0);
 
    for (i = 0; i < 8 * 8; i++)
    {
@@ -114,26 +147,9 @@ bool loop_perform_key_search(
    while (u64Currentkey <= u64Stopkey)
    {
 
-      for (i = 0; i < BS_BATCH_SIZE; i++)
-      {
-         keylist[i][0] = (u64Currentkey + i) >> 40;
-         keylist[i][1] = (u64Currentkey + i) >> 32;
-         keylist[i][2] = (u64Currentkey + i) >> 24;
-         keylist[i][3] = keylist[i][0] + keylist[i][1] + keylist[i][2];
-         keylist[i][4] = (u64Currentkey + i) >> 16;
-         keylist[i][5] = (u64Currentkey + i) >> 8;
-         keylist[i][6] = (u64Currentkey + i);
-         keylist[i][7] = keylist[i][4] + keylist[i][5] + keylist[i][6];
-      }
-/***********************************************************************************************************************/
-/***********************************************************************************************************************/
-/***********************************************************************************************************************/
-      aycw_key_transpose(&keylist[0][0], keys_bs);     // transpose BS_BATCH_SIZE keys into bitsliced form
+      loop_generate_key_batch(u64Currentkey, keylist, keys_bs);
 
-      // check if all keys were transposed correctly
-      aycw_assert_key_transpose(&keylist[0][0], keys_bs);
-
-      // inner loop: see aycw_bs_increment_keys_inner()
+      /************* inner loop ******************/
       for (k = 0; k < KEYSPERINNERLOOP / BS_BATCH_SIZE; k++)
       {
 
@@ -185,7 +201,7 @@ bool loop_perform_key_search(
 
          //for (i = 32; i < 64; i++) r[i] = BS_VAL8(55);   // destroy decrypted bytes 4...7 of DB0 shouldnt matter
 
-         aycw_assert_decrypt_result((uint8_t*) probedata, keylist, r);
+         aycw_assert_decrypt_result(probedata, keylist, r);
 
          if (aycw_checkPESheader(r, &candidates))  /* OPTIMIZEME: return value should be first possible slice number to let the loop below start right there */
          {
@@ -234,6 +250,12 @@ bool loop_perform_key_search(
          // set up the next BS_BATCH_SIZE keys
          aycw_bs_increment_keys_inner(keys_bs);
 
+         u64Currentkey += BS_BATCH_SIZE;
+
+#ifdef SELFTEST
+         /* re-transposing is only needed in self test, as keylist is evaluated inside inner */
+         loop_generate_key_batch(u64Currentkey, keylist, keys_bs);
+#endif
       }  // inner loop
 
       /***********************************************************************************************************************/
@@ -241,7 +263,6 @@ bool loop_perform_key_search(
       /***********************************************************************************************************************/
       (*progress_callback)(u64Currentkey, u64Stopkey);
 
-      u64Currentkey += KEYSPERINNERLOOP*BS_BATCH_SIZE;   // outer loop increment
 
    };  // while (u64Currentkey <= u64Stopkey)
 

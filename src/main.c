@@ -118,11 +118,7 @@ void aycw_perf_show(uint64_t u64Currentkey, uint64_t u64Stopkey)
       {
          printf("avg: %.3f Mcw/s  ", ((float)65535*DIVIDER / ((float)totalticks / totalloops)) / 1000);
       }
-      printf("%02X %02X %02X [] %02X .. .. []\r",
-         u64Currentkey >> 24,
-         u64Currentkey >> 16 & 0xFF,
-         u64Currentkey >> 8 & 0xFF,
-         u64Currentkey & 0xFF);
+      print_key(u64Currentkey, false);
    }
 }
 
@@ -336,8 +332,8 @@ int main(int argc, char *argv[])
     }
 
 
-   printf("start key: "); print_key(u64Currentkey);
-   printf("start key: "); print_key(u64Stopkey);
+   printf("start key: "); print_key(u64Currentkey, true);
+   printf("start key: "); print_key(u64Stopkey, true);
 
 #ifdef WIN32
    SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);

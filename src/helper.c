@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 
-void print_key(uint64_t u64key)
+void print_key(uint64_t u64key, bool boLineFeed)
 {
-      printf("%02X %02X %02X [] %02X %02X %02X []\n",
+      printf("%02X %02X %02X [] %02X %02X %02X [] ",
       (uint8_t)(u64key >> 40),
       (uint8_t)(u64key >> 32),
       (uint8_t)(u64key >> 24),
@@ -12,6 +13,7 @@ void print_key(uint64_t u64key)
       (uint8_t)(u64key >> 8),
       (uint8_t)(u64key >> 0));
 
+      if (boLineFeed) {printf("\n");}
 }
 
 void print_cw(uint8_t u8data[])

@@ -33,7 +33,7 @@
 
 #define UINT48_MAX   (0xFFFFFFFFFFFF)    /* */
 
-#define RESUMEFILENAME  "resume"
+#define RESUMEFILENAME  ".resume"
 #define FOUNDFILENAME   "keyfound.cwl"
 
 
@@ -46,10 +46,12 @@ const ts_probe_t bench_data = {
       { 0xB2, 0x74, 0x85, 0x51, 0xF9, 0x3C, 0x9B, 0xD2,  0x30, 0x9E, 0x8E, 0x78, 0xFB, 0x16, 0x55, 0xA9},
       { 0x25, 0x2D, 0x3D, 0xAB, 0x5E, 0x3B, 0x31, 0x39,  0xFE, 0xDF, 0xCD, 0x84, 0x51, 0x5A, 0x86, 0x4A},
       { 0xD0, 0xE1, 0x78, 0x48, 0xB3, 0x41, 0x63, 0x22,  0x25, 0xA3, 0x63, 0x0A, 0x0E, 0xD3, 0x1C, 0x70} };
-const uint64_t u64BenchStartKey = 0x00112233000000;
+const uint64_t u64BenchStartKey = 0x000011222F0000;
+const uint64_t u64BenchStopKey  = 0x00001122460000;
 
 
 
+/*
 void ayc_printhexbytes(unsigned char *c, uint8_t len)
 {
    int i;
@@ -60,6 +62,7 @@ void ayc_printhexbytes(unsigned char *c, uint8_t len)
    }
    printf("\n");
 }
+*/
 
 
 /* get system timer ticks in milli seconds */
@@ -80,21 +83,24 @@ long int aycw__getTicks_ms(void)
 #endif
 }
 
-/* globals for performance measure */
-unsigned long time_start, deltaticks, totalticks = 0;
-int totalloops = 0;
-int divider = 0;
-
-
-void aycw_performance_init(void)
-{
-   if (!divider) time_start = aycw__getTicks_ms();
-}
 
 /* print performance measure to console */
 void aycw_perf_show(uint64_t u64Currentkey, uint64_t u64Stopkey)
 {
-   const char prop[] = "|/-\\";
+   const char        prop[] = "|/-\\";
+   static int        propcnt;
+   static uint64_t   totalkeys = 0;    /* number of keys processed since start of program */
+   static uint64_t   u64FirstTicks;
+   static uint64_t   u64FirstKey;
+   static uint64_t   u64PreviousTicks;
+   static uint64_t   u64PreviousKey;
+   uint64_t          u64Ticks;
+   uint64_t          u64Keys;
+   uint64_t          u64DeltaTicks;
+   uint64_t          u64DeltaKeys;
+   static int        divider = 0;
+   static int        init_done = 0;
+
 
 #ifdef DEBUG
 #define DIVIDER 1
@@ -102,23 +108,45 @@ void aycw_perf_show(uint64_t u64Currentkey, uint64_t u64Stopkey)
 #define DIVIDER 16      // reduce update frequency for release
 #endif
 
-   divider++; 
-   if (divider >= DIVIDER) divider = 0;
-   if (!divider)
+   if (!init_done)
    {
-      putc(prop[(totalloops & 3)],stdout);
-      deltaticks = aycw__getTicks_ms() - time_start; /* quick'n dirty - no overflow checking... */
-      totalticks += deltaticks; totalloops++;
-      //printf(" time per %dk keys: %dms", KEYSPERINNERLOOP / 1000, deltaticks);
-      if (deltaticks)
+      init_done = 1;
+      u64PreviousTicks = u64FirstTicks  = aycw__getTicks_ms();
+      u64PreviousKey = u64FirstKey = u64Currentkey;
+   }
+   else
+   {
+      if (!divider)
       {
-         printf(" %.3f Mcw/s ", ((float)65535*DIVIDER / deltaticks / 1000));
+         uint64_t u64CurrentTicks  = aycw__getTicks_ms();
+         uint64_t u64DeltaKeys = u64Currentkey - u64PreviousKey;
+         uint64_t u64DeltaTicks = u64CurrentTicks - u64PreviousTicks;
+         uint64_t u64AllKeys = u64Stopkey - u64FirstKey;
+
+         printf("\r");
+         putc(prop[(propcnt++ & 3)],stdout);
+         u64Keys   = u64Currentkey - u64FirstKey;
+         u64Ticks  = u64CurrentTicks - u64FirstTicks;
+
+         if (u64DeltaTicks)
+         {
+            printf(" %.3f Mcw/s ", ((float)u64DeltaKeys / u64DeltaTicks / 1000));
+         }
+         if (u64Ticks)
+         {
+            printf("avg: %.3f Mcw/s  ", ((float)u64Keys / u64Ticks / 1000));
+         }
+         if (u64AllKeys)
+         {
+            printf("%.3f%% ", ((float)u64Keys / u64AllKeys * 100));
+         }
+         print_key(u64Currentkey, false);
+
+         u64PreviousKey = u64Currentkey;
+         u64PreviousTicks = u64CurrentTicks;
+         divider = DIVIDER;
       }
-      if (totalticks)
-      {
-         printf("avg: %.3f Mcw/s  ", ((float)65535*DIVIDER / ((float)totalticks / totalloops)) / 1000);
-      }
-      print_key(u64Currentkey, false);
+      divider--;
    }
 }
 
@@ -303,16 +331,18 @@ int main(int argc, char *argv[])
     }
 
     /* check parameter plausibility */
-    if ((!benchmark) && (!tsfile))
+    if ((!benchmark) && (!tsfile) && (!selftest))
     {
         printf("Please provide ts filename or run benchmark\n");
         usage();
     }
     if (selftest)
     {
-        /* Needed for exec post build testing in github pipeline */
-        printf("Option self-test not available yet, sorry\n");
-        usage();
+        printf("self test running...\n");
+        ts_probe_t my_data;
+        dvbcsa_cw_t  my_cw = {0,0,4,0,0,0,0,0};
+        ts_generate_probe_data(&my_data, my_cw);
+        exit (1);
     }
 
 
@@ -323,7 +353,7 @@ int main(int argc, char *argv[])
        printf("Benchmark mode enabled. Using internal ts data\n");
        memcpy(probedata, bench_data, sizeof(probedata));
        u64Currentkey    = u64BenchStartKey;
-       u64Stopkey       = UINT48_MAX;
+       u64Stopkey       = u64BenchStopKey;
     }
     else
     {
@@ -333,18 +363,16 @@ int main(int argc, char *argv[])
 
 
    printf("start key: "); print_key(u64Currentkey, true);
-   printf("start key: "); print_key(u64Stopkey, true);
+   printf("stop key : "); print_key(u64Stopkey, true);
 
 #ifdef WIN32
    SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 #endif
 
-   aycw_performance_init();
-   
    if (loop_perform_key_search(
-         probedata, 
-         u64Currentkey, 
-         u64Stopkey,   
+         probedata,
+         u64Currentkey,
+         u64Stopkey,
          main_status_update,
          cw)
       )

@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/debug/sse4_2/aycwabtu",
-            "args": ["-b"],
+            "args": ["-s"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -255,7 +255,7 @@ void ts_generate_probe_data(ts_probe2_t *data, const dvbcsa_cw_t cw)
    if (data)
    {
       int   i;
-      memset(data, 0, sizeof(ts_probe_t));
+      memset(data, 0, sizeof(ts_probe2_t));
 
       dvbcsa_key_set(cw, &key);
       for(i=0; i<PROBE_NUM_PACKETS; i++)

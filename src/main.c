@@ -42,13 +42,13 @@
             000001ff11111111aa11111111111155
             000001ff11111111aa11111111111156
             000001ff11111111aa11111111111157  */
-const ts_probe_t bench_data = {
+/*const ts_probe_t bench_data = {
       { 0xB2, 0x74, 0x85, 0x51, 0xF9, 0x3C, 0x9B, 0xD2,  0x30, 0x9E, 0x8E, 0x78, 0xFB, 0x16, 0x55, 0xA9},
       { 0x25, 0x2D, 0x3D, 0xAB, 0x5E, 0x3B, 0x31, 0x39,  0xFE, 0xDF, 0xCD, 0x84, 0x51, 0x5A, 0x86, 0x4A},
       { 0xD0, 0xE1, 0x78, 0x48, 0xB3, 0x41, 0x63, 0x22,  0x25, 0xA3, 0x63, 0x0A, 0x0E, 0xD3, 0x1C, 0x70} };
 const uint64_t u64BenchStartKey = 0x000011222F0000;
 const uint64_t u64BenchStopKey  = 0x00001122460000;
-
+*/
 
 
 /*
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
    int      opt;
    char*    tsfile = NULL;
 
-   ts_probe_t     probedata;
+   ts_probe2_t    probedata;
    int            probeparity;
 
    unsigned char  cw[8];
@@ -345,14 +345,14 @@ int main(int argc, char *argv[])
         const dvbcsa_cw_t  cw_enc = {0x00, 0x11, 0x22, 0x33, 0x44, 0x00, 0x00, 0x44};
         dvbcsa_cw_t  cw;
         u64Currentkey = 0x1122440000;
-        u64Stopkey = 0x1122440000;
+        u64Stopkey = 0x1122450000;
         ts_generate_probe_data(&my_data, cw_enc);
          if (loop_perform_key_search(
-            (ts_probe_t*)&my_data,
+            &my_data,
             u64Currentkey,
             u64Stopkey,
             NULL,
-             cw))
+            cw))
          {
             printf("OK ");
             print_cw(cw);
@@ -368,14 +368,14 @@ int main(int argc, char *argv[])
 
     aycw_welcome_banner();
     /*aycw_partsbench();*/
-    if (benchmark)
+    /*if (benchmark)
     {
        printf("Benchmark mode enabled. Using internal ts data\n");
        memcpy(&probedata, bench_data, sizeof(probedata));
        u64Currentkey    = u64BenchStartKey;
        u64Stopkey       = u64BenchStopKey;
     }
-    else
+    else*/
     {
         ts_read_file(tsfile, (uint8_t*) &probedata, &probeparity);
         aycw_read_resumefile(&u64Currentkey);
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
 #endif
 
    if (loop_perform_key_search(
-         probedata,
+         &probedata,
          u64Currentkey,
          u64Stopkey,
          main_status_update,

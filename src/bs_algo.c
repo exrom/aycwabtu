@@ -279,7 +279,7 @@ void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned
    @param   keylist[in]       BS_BATCH_SIZE keys in regular form
    @param   data[in]          decryption result in bit/byte-sliced form
 */
-void aycw_assert_decrypt_result(ts_probe_t probedata, uint8_t *keylist, dvbcsa_bs_word_t *data)
+void aycw_assert_decrypt_result(ts_probe2_t *probedata, uint8_t *keylist, dvbcsa_bs_word_t *data)
 {
 #ifdef SELFTEST
    int            i,j;

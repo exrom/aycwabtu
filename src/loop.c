@@ -104,7 +104,7 @@ void loop_generate_key_batch(uint64_t u64Currentkey, uint8_t keylist[], dvbcsa_b
 
 
 bool loop_perform_key_search(
-   ts_probe_t probedata,
+   ts_probe2_t *probedata,
    uint64_t u64Currentkey, 
    uint64_t u64Stopkey, 
    void (*progress_callback)(uint64_t u64ProgressKey, uint64_t u64Stopkey),
@@ -220,7 +220,7 @@ bool loop_perform_key_search(
 
                   dvbcsa_key_set(cw, &key);
 
-                  memcpy(&data, &probedata[0], 16);
+                  memcpy(&data, &((ts_probe_packet_t*)probedata)[0], 16);
                   dvbcsa_decrypt(&key, data, 16);
                   if (data[0] != 0x00 || data[1] != 0x00 || data[2] != 0x01)
                   {
@@ -231,11 +231,11 @@ bool loop_perform_key_search(
                      exit(ERR_FATAL);
                   }
 
-                  memcpy(&data, &probedata[1], 16);
+                  memcpy(&data, &((ts_probe_packet_t*)probedata)[1], 16);
                   dvbcsa_decrypt(&key, data, 16);
                   if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x01)
                   {
-                     memcpy(&data, &probedata[2], 16);
+                     memcpy(&data, &((ts_probe_packet_t*)probedata)[2], 16);
                      dvbcsa_decrypt(&key, data, 16);
                      if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x01)
                      {

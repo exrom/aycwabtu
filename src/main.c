@@ -259,13 +259,10 @@ void usage(void) {
     printf("                    bytes are omittted, e.g. 112233556677 [000000000000]\n");
     printf("   -o stop cw       when this cw is reached, program terminates [FFFFFFFFFFFF]\n");
     printf("   -b benchmark     start benchmark run with internal demo ts data\n");
-    printf("   -s self test     execute algorithm self test and quit\n");
-    /* TBD: with "benchmark" the user expects program to not stop and just continue measuring thoughput?
-            Better rename to "demo"? */
     exit(ERR_USAGE);
 }
 
-uint32_t ayc_scan_cw_param(const char *string) {
+uint64_t ayc_get_key_from_cw_param(const char *string) {
     uint8_t tmp[8];
     
     if ((strlen(string) != 12) || (6 != sscanf(string, "%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", &tmp[0], &tmp[1], &tmp[2], &tmp[4], &tmp[5], &tmp[6])))
@@ -273,7 +270,7 @@ uint32_t ayc_scan_cw_param(const char *string) {
         printf("key parameter format incorrect. 6 hex bytes expected.\n");
         usage();
     }
-    return
+    return /*getKey(tmp);*/
                ((uint64_t)tmp[0] << 40) +
                ((uint64_t)tmp[1] << 32) +
                ((uint64_t)tmp[2] << 24) +
@@ -283,10 +280,38 @@ uint32_t ayc_scan_cw_param(const char *string) {
                ((uint64_t)tmp[6]);
 }
 
+void performSelfTest(void)
+{
+   dvbcsa_cw_t  cw_enc;
+   dvbcsa_cw_t  cw;
+   uint64_t    u64Stopkey, u64Currentkey;
+   ts_probe2_t    probedata;
+   int          i;
+
+   printf("self test ... ");
+   for(i=0; i<BS_BATCH_SIZE+1; i++)
+   {
+      u64Stopkey = u64Currentkey = 0x112233440000;    /* start loop search at aligned batch */
+      getCw(u64Currentkey+i, cw_enc);                 /* put to be found key into increasing positions into batch */
+      ts_generate_probe_data(&probedata, cw_enc);
+
+      if (!loop_perform_key_search(
+         &probedata,
+         u64Currentkey,
+         u64Stopkey,
+         NULL,
+         cw))
+      {
+         printf("failed at %d\n", i);
+         exit (1);
+      }
+   }
+   printf("passed.\n");
+}
+
 int main(int argc, char *argv[])
 {
    int      benchmark = 0;
-   int      selftest = 0;
    int      opt;
    char*    tsfile = NULL;
 
@@ -298,7 +323,7 @@ int main(int argc, char *argv[])
    uint64_t       u64Currentkey     = 0;
    uint64_t       u64Stopkey        = UINT48_MAX;
 
-    while((opt = getopt(argc, argv, "t:a:o:bs")) != -1) 
+    while((opt = getopt(argc, argv, "t:a:o:b")) != -1) 
     { 
         switch(opt) 
         { 
@@ -306,16 +331,13 @@ int main(int argc, char *argv[])
                 tsfile = optarg;
                 break; 
             case 'a': 
-                u64Currentkey = ayc_scan_cw_param(optarg);
+                u64Currentkey = ayc_get_key_from_cw_param(optarg);
                 break; 
             case 'o': 
-                u64Stopkey = ayc_scan_cw_param(optarg);
+                u64Stopkey = ayc_get_key_from_cw_param(optarg);
                 break; 
             case 'b': 
                 benchmark = 1;
-                break; 
-            case 's': 
-                selftest = 1;
                 break; 
             case ':': 
                 printf("option needs a value\n"); 
@@ -331,50 +353,24 @@ int main(int argc, char *argv[])
     }
 
     /* check parameter plausibility */
-    if ((!benchmark) && (!tsfile) && (!selftest))
+    if ((!benchmark) && (!tsfile))
     {
         printf("Please provide ts filename or run benchmark\n");
         usage();
     }
-    if (selftest)
-    {
-        printf("self test running...\n");
-        ts_probe2_t my_data;
-        printf("sizeof ts_probe2_t %d\n", sizeof(ts_probe2_t));
-        const dvbcsa_cw_t  cw_enc = {0x00, 0x11, 0x22, 0x33, 0x44, 0x00, 0x00, 0x44};
-        dvbcsa_cw_t  cw;
-        u64Currentkey = 0x1122440000;
-        u64Stopkey = 0x1122450000;
-        ts_generate_probe_data(&my_data, cw_enc);
-         if (loop_perform_key_search(
-            &my_data,
-            u64Currentkey,
-            u64Stopkey,
-            NULL,
-            cw))
-         {
-            printf("OK ");
-            print_cw(cw);
-         }
-         else
-         {
-            printf("FAIL\n");
-         }
-
-        exit (1);
-    }
-
 
     aycw_welcome_banner();
-    /*aycw_partsbench();*/
-    /*if (benchmark)
+    performSelfTest();
+
+    if (benchmark)
     {
        printf("Benchmark mode enabled. Using internal ts data\n");
-       memcpy(&probedata, bench_data, sizeof(probedata));
-       u64Currentkey    = u64BenchStartKey;
-       u64Stopkey       = u64BenchStopKey;
+      u64Currentkey  = 0xCAFE30000000;
+      u64Stopkey     = 0xCAFE50000000;
+      getCw(           0xCAFE46000000, cw);
+      ts_generate_probe_data(&probedata, cw);
     }
-    else*/
+    else
     {
         ts_read_file(tsfile, (uint8_t*) &probedata, &probeparity);
         aycw_read_resumefile(&u64Currentkey);

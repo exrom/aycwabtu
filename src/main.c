@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
    printf("stop key : "); print_key(u64Stopkey, true);
 
 #ifdef WIN32
-   SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+   SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 #endif
 
    if (loop_perform_key_search(
@@ -393,9 +393,7 @@ int main(int argc, char *argv[])
       )
    {
       printf("\nkey candidate successfully decrypted three packets\n");
-      printf("KEY FOUND!!!    %02X %02X %02X [%02X]  %02X %02X %02X [%02X]\n",
-         cw[0], cw[1], cw[2], cw[3], cw[4], cw[5], cw[6], cw[7]);
-         /*print_cw()*/
+      printf("KEY FOUND!!! "); print_cw(cw);
 
       if (tsfile) aycw_write_keyfoundfile(cw, probeparity, tsfile);
       exit(OK);

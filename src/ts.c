@@ -261,9 +261,10 @@ void ts_generate_probe_data(ts_probe2_t *data, const dvbcsa_cw_t cw)
       for(i=0; i<PROBE_NUM_PACKETS; i++)
       {
          ts_probe_packet_t tmp = {0x00, 0x00, 0x01, 0xff, 0x11, 0x11, 0x11, 0x11, 0xaa, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x55+i};
-         ((ts_probe_packet_t*)data)[i] = tmp;
+         ts_probe_packet_t * pElement = &(((ts_probe_packet_t*)data)[i]);
+         *pElement = tmp;
 
-         dvbcsa_encrypt(&key, (unsigned char*) &(data[i]), PROBE_BYTES_PER_PACKET);
+         dvbcsa_encrypt(&key, (uint8_t*)pElement, PROBE_BYTES_PER_PACKET);
       }
    }
 }

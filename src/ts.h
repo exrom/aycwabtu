@@ -8,10 +8,6 @@
 #define PROBE_BYTES_PER_PACKET   16
 /** Contains excerpt from transport stream (three packets with its 16 bytes each) needed for brute force attack.
  */
-typedef struct ts_probe_tag
-{
-   unsigned char packet[PROBE_BYTES_PER_PACKET];
-} ts_probe_t[PROBE_NUM_PACKETS];
 
 typedef struct ts_probe_packet_tag
 {

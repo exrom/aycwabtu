@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "dvbcsa.h"
 
 
 void print_key(uint64_t u64key, bool boLineFeed)
@@ -27,4 +28,29 @@ void print_cw(uint8_t u8data[])
       u8data[5],
       u8data[6],
       u8data[7]);
+}
+
+uint64_t getKey(const uint8_t cw[])
+{
+      uint64_t key =
+            cw[0] << 40 +
+            cw[1] << 32 +
+            cw[2] << 24 +
+            cw[4] << 16 +
+            cw[5] << 8 +
+            cw[6];
+
+      return key;
+}
+
+void getCw(const uint64_t key, uint8_t cw[])
+{
+      cw[0] = (key) >> 40;
+      cw[1] = (key) >> 32;
+      cw[2] = (key) >> 24;
+      cw[3] = cw[0] + cw[1] + cw[2];
+      cw[4] = (key) >> 16;
+      cw[5] = (key) >> 8;
+      cw[6] = (key);
+      cw[7] = cw[4] + cw[5] + cw[6];
 }

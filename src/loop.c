@@ -10,6 +10,7 @@
 #include "bs_block_ab.h"
 #include "bs_algo.h"
 #include "dvbcsa.h"
+#include "helper.h"
 
 
 /****************** definitions ***********************/
@@ -89,14 +90,15 @@ void loop_generate_key_batch(uint64_t u64Currentkey, uint8_t keylist[], dvbcsa_b
 
    for (i = 0; i < BS_BATCH_SIZE; i++)
    {
-      keylist[i*8+0] = (u64Currentkey + i) >> 40;
+      getCw(u64Currentkey+i, &(keylist[i*8]));
+      /*keylist[i*8+0] = (u64Currentkey + i) >> 40;
       keylist[i*8+1] = (u64Currentkey + i) >> 32;
       keylist[i*8+2] = (u64Currentkey + i) >> 24;
       keylist[i*8+3] = keylist[i*8+0] + keylist[i*8+1] + keylist[i*8+2];
       keylist[i*8+4] = (u64Currentkey + i) >> 16;
       keylist[i*8+5] = (u64Currentkey + i) >> 8;
       keylist[i*8+6] = (u64Currentkey + i);
-      keylist[i*8+7] = keylist[i*8+4] + keylist[i*8+5] + keylist[i*8+6];
+      keylist[i*8+7] = keylist[i*8+4] + keylist[i*8+5] + keylist[i*8+6];*/
    }
    aycw_key_transpose(keylist, keys_bs);
    aycw_assert_key_transpose(keylist, keys_bs);

@@ -340,7 +340,6 @@ int main(int argc, char *argv[])
     {
         printf("self test running...\n");
         ts_probe2_t my_data;
-        printf("sizeof ts_probe_t %d\n", sizeof(ts_probe_t));
         printf("sizeof ts_probe2_t %d\n", sizeof(ts_probe2_t));
         const dvbcsa_cw_t  cw_enc = {0x00, 0x11, 0x22, 0x33, 0x44, 0x00, 0x00, 0x44};
         dvbcsa_cw_t  cw;

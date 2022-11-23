@@ -248,7 +248,7 @@ unsigned char ts_read_file(unsigned char *tsfile, unsigned char *probedata, int 
    return 1;
 }
 
-void ts_generate_probe_data(ts_probe2_t data[], const dvbcsa_cw_t cw)
+void ts_generate_probe_data(ts_probe2_t *data, const dvbcsa_cw_t cw)
 {
    dvbcsa_key_t   key;
 
@@ -260,8 +260,8 @@ void ts_generate_probe_data(ts_probe2_t data[], const dvbcsa_cw_t cw)
       dvbcsa_key_set(cw, &key);
       for(i=0; i<PROBE_NUM_PACKETS; i++)
       {
-         ts_probe2_t tmp = {0x00, 0x00, 0x01, i};
-         data[i] = tmp;
+         ts_probe_packet_t tmp = {0x00, 0x00, 0x01, 0xff, 0x11, 0x11, 0x11, 0x11, 0xaa, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x55+i};
+         ((ts_probe_packet_t*)data)[i] = tmp;
 
          dvbcsa_encrypt(&key, (unsigned char*) &(data[i]), PROBE_BYTES_PER_PACKET);
       }

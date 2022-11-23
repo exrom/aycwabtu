@@ -13,9 +13,14 @@ typedef struct ts_probe_tag
    unsigned char packet[PROBE_BYTES_PER_PACKET];
 } ts_probe_t[PROBE_NUM_PACKETS];
 
-typedef struct ts_probe2_tag
+typedef struct ts_probe_packet_tag
 {
    unsigned char packet[PROBE_BYTES_PER_PACKET];
+} ts_probe_packet_t;
+
+typedef struct ts_probe2_tag
+{
+   ts_probe_packet_t probe[PROBE_NUM_PACKETS];
 } ts_probe2_t;
 
 
@@ -27,6 +32,6 @@ typedef struct ts_probe2_tag
 */
 unsigned char ts_read_file(unsigned char *tsfile, unsigned char  *probedata, int *probeparity);
 
-void ts_generate_probe_data(ts_probe2_t data[], const dvbcsa_cw_t cw);
+void ts_generate_probe_data(ts_probe2_t *data, const dvbcsa_cw_t cw);
 
 #endif

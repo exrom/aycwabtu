@@ -339,9 +339,29 @@ int main(int argc, char *argv[])
     if (selftest)
     {
         printf("self test running...\n");
-        ts_probe_t my_data;
-        dvbcsa_cw_t  my_cw = {0,0,4,0,0,0,0,0};
+        ts_probe2_t my_data;
+        printf("sizeof ts_probe_t %d\n", sizeof(ts_probe_t));
+        printf("sizeof ts_probe2_t %d\n", sizeof(ts_probe2_t));
+        const dvbcsa_cw_t  my_cw = {0x00, 0x11, 0x22, 0x33, 0x44, 0x00, 0x00, 0x44};
+        dvbcsa_cw_t  cw;
+        u64Currentkey = 0x1122440000;
+        u64Stopkey = 0x1122450000;
         ts_generate_probe_data(&my_data, my_cw);
+         if (loop_perform_key_search(
+            (ts_probe_t*)&my_data,
+            u64Currentkey,
+            u64Stopkey,
+            NULL,
+            cw))
+         {
+            printf("OK   %02X %02X %02X [%02X]  %02X %02X %02X [%02X]\n",
+               cw[0], cw[1], cw[2], cw[3], cw[4], cw[5], cw[6], cw[7]);
+         }
+         else
+         {
+            printf("FAIL\n");
+         }
+
         exit (1);
     }
 
@@ -351,13 +371,13 @@ int main(int argc, char *argv[])
     if (benchmark)
     {
        printf("Benchmark mode enabled. Using internal ts data\n");
-       memcpy(probedata, bench_data, sizeof(probedata));
+       memcpy(&probedata, bench_data, sizeof(probedata));
        u64Currentkey    = u64BenchStartKey;
        u64Stopkey       = u64BenchStopKey;
     }
     else
     {
-        ts_read_file(tsfile, (uint8_t*) probedata, &probeparity);
+        ts_read_file(tsfile, (uint8_t*) &probedata, &probeparity);
         aycw_read_resumefile(&u64Currentkey);
     }
 

@@ -32,3 +32,6 @@ BATCH_SIZE     batches/element   dvbcsa_bs_word_t[0]           dvbcsa_bs_word_t[
 128            16                batch15/byte0...batch0/byte0  batch127/byte0...batch126/byte0
 */
 void aycw_bit2byteslice(dvbcsa_bs_word_t *data, int count);
+
+void aycw_copySB0_IB0(dvbcsa_bs_word_t bs_data_ib0[], dvbcsa_bs_word_t bs_data_sb0[]);
+

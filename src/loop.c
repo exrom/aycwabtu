@@ -137,10 +137,8 @@ bool loop_perform_key_search(
 
    aycw_init_stream((uint8_t*) probedata, bs_data_sb0);
 
-   for (i = 0; i < 8 * 8; i++)
-   {
-      bs_data_ib0[i] = bs_data_sb0[i];
-   }
+   aycw_copySB0_IB0(bs_data_ib0, bs_data_sb0);
+
 #ifndef USEALLBITSLICE
    aycw_bit2byteslice(bs_data_ib0, 1);
 #endif
@@ -162,7 +160,9 @@ bool loop_perform_key_search(
          /************** stream ***************/
          aycw_stream_decrypt(&bs_data_ib0[64], 25, keys_bs, bs_data_sb0);    // 3 bytes required for PES check, 25 bits for some reason
 
+#ifdef SELFTEST
          aycw_assert_stream(&bs_data_ib0[64], 25, keys_bs, bs_data_sb0);     // check if first bytes of IB1 output are correct
+#endif
 
 #ifndef USEALLBITSLICE
          aycw_bit2byteslice(&bs_data_ib0[64], 1);
@@ -203,7 +203,9 @@ bool loop_perform_key_search(
 
          //for (i = 32; i < 64; i++) r[i] = BS_VAL8(55);   // destroy decrypted bytes 4...7 of DB0 shouldnt matter
 
+#ifdef SELFTEST
          aycw_assert_decrypt_result(probedata, keylist, r);
+#endif
 
          if (aycw_checkPESheader(r, &candidates))  /* OPTIMIZEME: return value should be first possible slice number to let the loop below start right there */
          {

@@ -216,7 +216,6 @@ set up data used for stream. Depends on scrambled data only, so can be global
 */
 void aycw_assert_stream(dvbcsa_bs_word_t * data, unsigned int outbits, dvbcsa_bs_word_t * BS_key, dvbcsa_bs_word_t *bs_data_sb0)
 {
-#ifdef SELFTEST
    int   i;
 
    for (i = 0; i < 1; i++)
@@ -242,7 +241,6 @@ void aycw_assert_stream(dvbcsa_bs_word_t * data, unsigned int outbits, dvbcsa_bs
          aycw_fatal_error("aycw_assert_stream() failed\n");
       }
    }
-#endif
 }
 
 
@@ -281,7 +279,6 @@ void aycw_extractbsdata(dvbcsa_bs_word_t* bs_data, unsigned char slice, unsigned
 */
 void aycw_assert_decrypt_result(ts_probe2_t *probedata, uint8_t *keylist, dvbcsa_bs_word_t *data)
 {
-#ifdef SELFTEST
    int            i,j;
 
    for (i = 0; i < BS_BATCH_SIZE; i++)
@@ -324,7 +321,6 @@ void aycw_assert_decrypt_result(ts_probe2_t *probedata, uint8_t *keylist, dvbcsa
       if (! (++keylist[i * 8 + 5])) keylist[i * 8 + 6]++;
       keylist[i * 8 + 7] = keylist[i * 8 + 4] + keylist[i * 8 + 5] + keylist[i * 8 + 6];
    }
-#endif
 }
 
 /**
@@ -423,3 +419,13 @@ void aycw_bit2byteslice(dvbcsa_bs_word_t *data, int count)
    }
 }
 #endif
+
+void aycw_copySB0_IB0(dvbcsa_bs_word_t bs_data_ib0[], dvbcsa_bs_word_t bs_data_sb0[])
+{
+   int i;
+   
+   for (i = 0; i < 8 * 8; i++)
+   {
+      bs_data_ib0[i] = bs_data_sb0[i];
+   }
+}

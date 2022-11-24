@@ -24,45 +24,16 @@
 #include "loop.h"
 #include "ts.h"
 #include "helper.h"
+#include "config.h"
+
 
 #define VERSION   "V2.0"
-
-/* bitslice test cases */
-#include "bs_testcases.h"
-
 
 #define UINT48_MAX   (0xFFFFFFFFFFFF)    /* */
 
 #define RESUMEFILENAME  ".resume"
 #define FOUNDFILENAME   "keyfound.cwl"
 
-
-
-/* Decrypts with correct key 00 11 22 [33] 44 00 00 [44] to
-            000001ff11111111aa11111111111155
-            000001ff11111111aa11111111111156
-            000001ff11111111aa11111111111157  */
-/*const ts_probe_t bench_data = {
-      { 0xB2, 0x74, 0x85, 0x51, 0xF9, 0x3C, 0x9B, 0xD2,  0x30, 0x9E, 0x8E, 0x78, 0xFB, 0x16, 0x55, 0xA9},
-      { 0x25, 0x2D, 0x3D, 0xAB, 0x5E, 0x3B, 0x31, 0x39,  0xFE, 0xDF, 0xCD, 0x84, 0x51, 0x5A, 0x86, 0x4A},
-      { 0xD0, 0xE1, 0x78, 0x48, 0xB3, 0x41, 0x63, 0x22,  0x25, 0xA3, 0x63, 0x0A, 0x0E, 0xD3, 0x1C, 0x70} };
-const uint64_t u64BenchStartKey = 0x000011222F0000;
-const uint64_t u64BenchStopKey  = 0x00001122460000;
-*/
-
-
-/*
-void ayc_printhexbytes(unsigned char *c, uint8_t len)
-{
-   int i;
-   for (i = 0; i<len; i++)
-   {
-      if ( i && !(i%4) ) printf(" ");
-      printf("%02X", c[i]);
-   }
-   printf("\n");
-}
-*/
 
 
 /* get system timer ticks in milli seconds */
@@ -236,7 +207,7 @@ void aycw_write_keyfoundfile(unsigned char *cw, int probeparity, char* tsfile)
 void aycw_welcome_banner(void)
 {
    printf("AYCWABTU CSA brute forcer %s %s built on %s", VERSION, GITHASH, __DATE__);
-#ifdef _DEBUG
+#ifdef DEBUG
    printf(" DEBUG");
 #endif
    printf("\nCPU only, single threaded version");

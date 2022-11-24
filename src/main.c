@@ -60,15 +60,12 @@ void aycw_perf_show(uint64_t u64Currentkey, uint64_t u64Stopkey)
 {
    const char        prop[] = "|/-\\";
    static int        propcnt;
-   static uint64_t   totalkeys = 0;    /* number of keys processed since start of program */
    static uint64_t   u64FirstTicks;
    static uint64_t   u64FirstKey;
    static uint64_t   u64PreviousTicks;
    static uint64_t   u64PreviousKey;
    uint64_t          u64Ticks;
    uint64_t          u64Keys;
-   uint64_t          u64DeltaTicks;
-   uint64_t          u64DeltaKeys;
    static int        divider = 0;
    static int        init_done = 0;
 
@@ -182,7 +179,6 @@ void aycw_read_resumefile(uint64_t *key)
 void aycw_write_keyfoundfile(unsigned char *cw, int probeparity, char* tsfile)
 {
    FILE * filehdl;
-   int i;
    char string[1024];
 
    printf("writing result to file \"%s\"\n", FOUNDFILENAME);
@@ -284,7 +280,7 @@ int main(int argc, char *argv[])
 {
    int      benchmark = 0;
    int      opt;
-   char*    tsfile = NULL;
+   unsigned char*    tsfile = NULL;
 
    ts_probe2_t    probedata;
    int            probeparity;

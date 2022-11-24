@@ -35,3 +35,4 @@ void aycw_bit2byteslice(dvbcsa_bs_word_t *data, int count);
 
 void aycw_copySB0_IB0(dvbcsa_bs_word_t bs_data_ib0[], dvbcsa_bs_word_t bs_data_sb0[]);
 
+void aycw_block_prepare_ib0(dvbcsa_bs_word_t r[], dvbcsa_bs_word_t bs_data_ib0[]);

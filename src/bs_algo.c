@@ -423,9 +423,27 @@ void aycw_bit2byteslice(dvbcsa_bs_word_t *data, int count)
 void aycw_copySB0_IB0(dvbcsa_bs_word_t bs_data_ib0[], dvbcsa_bs_word_t bs_data_sb0[])
 {
    int i;
-   
+
    for (i = 0; i < 8 * 8; i++)
    {
       bs_data_ib0[i] = bs_data_sb0[i];
    }
+}
+
+/**
+ * copy block input data to working data block considering virtual shift stretching
+ * */
+void aycw_block_prepare_ib0(dvbcsa_bs_word_t r[], dvbcsa_bs_word_t bs_data_ib0[])
+{
+   int   i;
+
+   for (i = 0; i < 8 * 8; i++)
+   {
+#ifdef USEBLOCKVIRTUALSHIFT
+      r[8 * 56 + i] = bs_data_ib0[i];      // r is the input/output working data for block
+#else                                            // restore after each block run
+      r[i] = bs_data_ib0[i];               // 
+#endif
+   }
+
 }

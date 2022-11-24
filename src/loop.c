@@ -115,11 +115,16 @@ bool loop_perform_key_search(
    uint64_t      i, k;
 
    /************** stream ***************/
-   dvbcsa_bs_word_t     bs_data_sb0[8 * 16];    // constant scrambled data blocks SB0 + SB1, global init for stream, da_diett.pdf 5.1
-   dvbcsa_bs_word_t     bs_data_ib0[8 * 16];    // IB0 is bit/byte sliced block init vector, ib1 is bit sliced stream output
+   /** constant scrambled data blocks SB0 + SB1, global init for stream, da_diett.pdf 5.1 */
+   dvbcsa_bs_word_t     bs_data_sb0[8 * 16];
+   /** IB0 is bit/byte sliced block init vector, ib1 is bit sliced stream output */
+   dvbcsa_bs_word_t     bs_data_ib0[8 * 16];
+
    /************** block ***************/
-   dvbcsa_bs_word_t     keys_bs[64];            // bit sliced keys for block
-   dvbcsa_bs_word_t     keyskk[448];            // bit sliced scheduled keys (64 bit -> 448 bit)
+   /** bit sliced keys for block */
+   dvbcsa_bs_word_t     keys_bs[64];
+   /** bit sliced scheduled keys (64 bit -> 448 bit) */
+   dvbcsa_bs_word_t     keyskk[448];
 
 #ifdef USEBLOCKVIRTUALSHIFT
    dvbcsa_bs_word_t	r[8 * (1 + 8 + 56)];        // working data block
@@ -169,14 +174,7 @@ bool loop_perform_key_search(
 #endif
 
          /************** block ***************/
-         for (i = 0; i < 8 * 8; i++)
-         {
-#ifdef USEBLOCKVIRTUALSHIFT
-            r[8 * 56 + i] = bs_data_ib0[i];      // r is the input/output working data for block
-#else                                            // restore after each block run
-            r[i] = bs_data_ib0[i];               // 
-#endif
-         }
+         aycw_block_prepare_ib0(r, bs_data_ib0);
 
          /* block schedule key 64 bits -> 448 bits */  /* OPTIMIZEME: only the 16 inner bits in inner loop */
          aycw_block_key_schedule(keys_bs, keyskk);

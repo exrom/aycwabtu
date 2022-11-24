@@ -33,12 +33,12 @@ void print_cw(uint8_t u8data[])
 uint64_t getKey(const uint8_t cw[])
 {
       uint64_t key =
-            cw[0] << 40 +
-            cw[1] << 32 +
-            cw[2] << 24 +
-            cw[4] << 16 +
-            cw[5] << 8 +
-            cw[6];
+            ((uint64_t) cw[0] << 40) +
+            ((uint64_t) cw[1] << 32) +
+            ((uint64_t) cw[2] << 24) +
+            ((uint64_t) cw[4] << 16) +
+            ((uint64_t) cw[5] << 8) +
+            ((uint64_t) cw[6] << 0);
 
       return key;
 }

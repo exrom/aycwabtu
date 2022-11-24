@@ -256,9 +256,9 @@ void performSelfTest(void)
    int          i;
 
    printf("self test ... ");
-   for(i=0; i<BS_BATCH_SIZE+1; i++)
+   for(i=BS_BATCH_SIZE; i<BS_BATCH_SIZE+1; i++)
    {
-      u64Stopkey = u64Currentkey = 0x112233440000;    /* start loop search at aligned batch */
+      u64Stopkey = u64Currentkey = 0x112233440080;    /* start loop search at aligned batch */
       getCw(u64Currentkey+i, cw_enc);                 /* put to be found key into increasing positions into batch */
       ts_generate_probe_data(&probedata, cw_enc);
 

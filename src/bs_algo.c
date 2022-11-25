@@ -54,7 +54,21 @@ void aycw_bs_increment_keys_inner(dvbcsa_bs_word_t *keys_bs)
       keys_bs[40]      10101010  aa   01010101 55
       keys_bs[41]      11001100  cc   01100110 66
       keys_bs[42]      00000000  00   10001000 88
-      keys_bs[43]      00000000  00   00000000 00 */
+      keys_bs[43]      00000000  00   00000000 00 
+
+cw byte 4444 4444  5555 5555  6666 6666 7777 7777
+
+bit     3333 3333  4444 4444  4455 5555 5555 6666
+number  2345 6789  0123 4567  8901 2345 6789 0123
+
+loop    oooo oooo  iiii iiii  ibbb bbbb cccc cccc
+        
+slice bits
+o:  incremented in outer loop - not considered here
+i:  incremented here
+b:  covered by bit slice batch (example here: 7 bit == 128 different slices == sse2_4) - kept constant in inner loop
+c:  checksum bytes - need to be recalculated here over cw bytes 4...6
+*/
 
    dvbcsa_bs_word_t carry, carry1, sum456, co456;
 
@@ -100,8 +114,11 @@ void aycw_bs_increment_keys_inner(dvbcsa_bs_word_t *keys_bs)
    for (i = 32; i < 40; i++)
    {
       dvbcsa_bs_word_t tmp1, tmp2;
+      /* add bit from cw byte 4 + 5 + 6... */
       aycw_bs_fulladd(&keys_bs[i], &keys_bs[i + 8], &keys_bs[i + 16], &sum456, &co456);
+      /* ...store it in checksum byte 7... */
       aycw_bs_halfadd(&sum456, &carry); keys_bs[i + 24] = sum456;
+      /* ...and remember carry-out for next bit */
       aycw_bs_fulladd(&carry, &co456, &carry1, &tmp1, &tmp2);
       carry = tmp1;
       carry1= tmp2;

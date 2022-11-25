@@ -21,6 +21,10 @@
 #  include <time.h>
 #endif
 
+#if __STDC_VERSION__ < 201112L
+#error C11 compliant compiler required
+#endif
+
 #include "loop.h"
 #include "ts.h"
 #include "helper.h"
@@ -332,10 +336,10 @@ int main(int argc, char *argv[])
     if (benchmark)
     {
        printf("Benchmark mode enabled. Using internal ts data\n");
-      u64Currentkey  = 0xCAFE30000000;
-      u64Stopkey     = 0xCAFE50000000;
-      getCw(           0xCAFE46000000, cw);
-      ts_generate_probe_data(&probedata, cw);
+       u64Currentkey  = 0xCAFE30000000;
+       u64Stopkey     = 0xCAFE50000000;
+       getCw(           0xCAFE46000000, cw);
+       ts_generate_probe_data(&probedata, cw);
     }
     else
     {

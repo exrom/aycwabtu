@@ -32,8 +32,8 @@ CSA brute force bitslice stream and block prototypes
 
 /* enable cross checks of bitsliced and regular csa calculations.
 Run test cases with self test enabled after changing calculation dependent parts */
-#if 0 // DEBUG
-#define SELFTEST
+#if DEBUG
+#define ASSERTIONS
 #endif
 
 // performance measure of some core algo parts

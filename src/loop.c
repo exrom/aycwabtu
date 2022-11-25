@@ -158,14 +158,14 @@ bool loop_perform_key_search(
       for (k = 0; k < KEYSPERINNERLOOP / BS_BATCH_SIZE; k++)
       {
 
-#ifdef SELFTEST
+#ifdef ASSERTIONS
          /* check if initial (outer) key and subsequent (inner) key batches are correct */
          aycw_assertKeyBatch(keys_bs);
 #endif
          /************** stream ***************/
          aycw_stream_decrypt(&bs_data_ib0[64], 25, keys_bs, bs_data_sb0);    // 3 bytes required for PES check, 25 bits for some reason
 
-#ifdef SELFTEST
+#ifdef ASSERTIONS
          aycw_assert_stream(&bs_data_ib0[64], 25, keys_bs, bs_data_sb0);     // check if first bytes of IB1 output are correct
 #endif
 
@@ -201,7 +201,7 @@ bool loop_perform_key_search(
 
          //for (i = 32; i < 64; i++) r[i] = BS_VAL8(55);   // destroy decrypted bytes 4...7 of DB0 shouldnt matter
 
-#ifdef SELFTEST
+#ifdef ASSERTIONS
          aycw_assert_decrypt_result(probedata, keylist, r);
 #endif
 
@@ -254,7 +254,8 @@ bool loop_perform_key_search(
 
          u64Currentkey += BS_BATCH_SIZE;
 
-#ifdef SELFTEST
+#warning TBD
+#if 1 //def ASSERTIONS
          /* re-transposing is only needed in self test, as keylist is evaluated inside inner */
          loop_generate_key_batch(u64Currentkey, keylist, keys_bs);
 #endif

@@ -7,7 +7,7 @@
 #include "config.h"
 #include "bs_algo.h"
 
-#ifdef SELFTEST
+#ifdef ASSERTIONS
 #include "dvbcsa.h"
 #endif
 
@@ -130,7 +130,7 @@ c:  checksum bytes - need to be recalculated here over cw bytes 4...6
 
 void aycw_assert_key_transpose(uint8_t *keylist, dvbcsa_bs_word_t *bs_keys)
 {
-#ifdef SELFTEST
+#ifdef ASSERTIONS
    uint8_t i, k;
    uint8_t mykeylist[BS_BATCH_SIZE][8];
    uint8_t keylist2[BS_BATCH_SIZE][8];

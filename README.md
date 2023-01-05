@@ -64,8 +64,22 @@ if this dll is missing: error while loading shared libraries.
 
 ## building
 
+Aycwabtu uses CMake (Version 3.22 or newer) as build system generator, so you can use any IDE/build system CMake supports.
+Recommended is VS code along with ninja.
+Aycwabtu was tested with gcc (Ubuntu 11.3.0-1ubuntu1~22.04)
+
+
+Linux prerequisites:
+sudo apt install git gcc cmake cmake-qt-gui ninja-build
+
+Windows  prerequisites:
 Install MSYS2 from https://github.com/msys2/msys2-installer/releases/download/2022-10-28/msys2-x86_64-20221028.exe.
 Add to PATH: C:\msys64\mingw64\bin and c:\msys64\usr\bin
+
+Open terminal and run cmake-gui.
+Where is the source code:               ./src
+Where to build the binaries:            build
+Specify generator for this project      Ninja
 
 
 ## developers

@@ -1,5 +1,3 @@
 {
-    "files.associations": {
-        "bs_testcases.h": "c"
-    }
+    "cmake.sourceDirectory": "${workspaceFolder}/src"
 }

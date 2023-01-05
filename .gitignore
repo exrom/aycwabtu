@@ -1,11 +1,1 @@
-**/Release/*
-**/Debug/*
-*.zip
-**/obj/*
-*.a
-.resume
-testfile.ts
-*.log
-*.pyc
-*.cwl
-/*.ts
+/build*/**

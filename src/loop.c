@@ -186,22 +186,11 @@ bool loop_perform_key_search(
 
          aycw_block_decrypt(keyskk, r);   // r is the generated block output
 
-         {
-/*#ifdef USEALLBITSLICE
-            uint8_t dump[8];
-            aycw_extractbsdata(r, 0, 64, dump);
-            printf("%02x %02x %02x %02x  %02x %02x %02x %02x\n",dump[0],dump[1],dump[2],dump[3],dump[4],dump[5],dump[6],dump[7]);
-#else
-            printf("%02x %02x %02x %02x  %02x %02x %02x %02x\n",(uint8)BS_EXTLS32(r[8 * 0]),(uint8)BS_EXTLS32(r[8 * 1]),(uint8)BS_EXTLS32(r[8 * 2]),(uint8)BS_EXTLS32(r[8 * 3]),(uint8)BS_EXTLS32(r[8 * 4]),(uint8)BS_EXTLS32(r[8 * 5]),(uint8)BS_EXTLS32(r[8 * 6]),(uint8)BS_EXTLS32(r[8 * 7]));
-#endif*/
-         }
-
          /************** block xor stream ***************/
          aycw_bs_xor24(r, r, &bs_data_ib0[64]);
 
-         //for (i = 32; i < 64; i++) r[i] = BS_VAL8(55);   // destroy decrypted bytes 4...7 of DB0 shouldnt matter
-
 #ifdef ASSERTIONS
+         for (i = 32; i < 64; i++) r[i] = BS_VAL8(55);   // destroy decrypted bytes 4...7 of DB0 shouldnt matter
          aycw_assert_decrypt_result(probedata, keylist, r);
 #endif
 

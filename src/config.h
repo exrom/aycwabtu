@@ -57,7 +57,7 @@ Run test cases with self test enabled after changing calculation dependent parts
    The block sbox is implemented by boolean equations instad of a 8/16 bit LUT.
    LUT is faster for small batches, but depends on batch size. 
    Enable USEALLBITSLICE for large batches */
-#define  USEALLBITSLICE
+//#define  USEALLBITSLICE
 
 /* print block registers each round */
 //#define BLOCKDEBUG

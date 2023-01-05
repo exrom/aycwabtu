@@ -17,11 +17,11 @@
 void AYCW_INLINE aycw_block_sbox(dvbcsa_bs_word_t *);
 
 #ifdef USEWORDBLOCKSBOX
-static uint16   aycw_block_sbox16[0x10000];
+static uint16_t   aycw_block_sbox16[0x10000];
 #endif
 
 
-const uint8		cu8_aycw_block_sbox[256] =
+const uint8_t		cu8_aycw_block_sbox[256] =
 {
    0x3a, 0xea, 0x68, 0xfe, 0x33, 0xe9, 0x88, 0x1a, 0x83, 0xcf, 0xe1, 0x7f, 0xba, 0xe2, 0x38, 0x12,
    0xe8, 0x27, 0x61, 0x95, 0x0c, 0x36, 0xe5, 0x70, 0xa2, 0x06, 0x82, 0x7c, 0x17, 0xa3, 0x26, 0x49,
@@ -192,7 +192,7 @@ AYCW_INLINE void aycw_block_sbox(dvbcsa_bs_word_t *w)
 #  if BS_BATCH_BYTES < 2
 #  error BS_BATCH_BYTES < 2
 #  endif
-   uint16 *si = (uint16 *)w;
+   uint16_t *si = (uint16_t *)w;
    int i;
 
    for (i = 0; i < BS_BATCH_BYTES/2; i++)
@@ -201,8 +201,8 @@ AYCW_INLINE void aycw_block_sbox(dvbcsa_bs_word_t *w)
 }
 
 #define SBOXSSE2(in, ret, shift) {                          \
-   uint16      u16tmp;                                      \
-   u16tmp = (uint16)BS_EXTLS32(BS_SHR8(in, shift));         \
+   uint16_t    u16tmp;                                      \
+   u16tmp = (uint16_t)BS_EXTLS32(BS_SHR8(in, shift));         \
    u16tmp = aycw_block_sbox16[u16tmp];                      \
    ret = BS_OR(ret, BS_SHL8(BS_VAL_LSDW(u16tmp), shift));   }
 
@@ -228,9 +228,9 @@ AYCW_INLINE dvbcsa_bs_word_t aycw_block_sbox_by_value(dvbcsa_bs_word_t in)
 
 for (i = 0; i < BS_BATCH_BYTES / 2; i++)
    {
-      uint16      u16tmp;
+      uint16_t      u16tmp;
 
-      u16tmp = (uint16)BS_SHR8(in, 2 * i);;
+      u16tmp = (uint16_t)BS_SHR8(in, 2 * i);;
       u16tmp = aycw_block_sbox16[u16tmp];
       ret = BS_OR(ret, BS_SHL8((dvbcsa_bs_word_t)u16tmp, 2 * i));
    }
@@ -247,7 +247,7 @@ void aycw_init_block(void)
 #ifdef USEWORDBLOCKSBOX
    int i;
    for (i=0; i<0x10000; i++)
-      aycw_block_sbox16[i] = (uint16)cu8_aycw_block_sbox[i/256]<<8 | cu8_aycw_block_sbox[i%256];
+      aycw_block_sbox16[i] = (uint16_t)cu8_aycw_block_sbox[i/256]<<8 | cu8_aycw_block_sbox[i%256];
 #endif
 }
 
@@ -297,16 +297,16 @@ void aycw_block_decrypt(const dvbcsa_bs_word_t* keys, dvbcsa_bs_word_t* r)
             uint8_t sn, wn;
             dvbcsa_bs_word_t tmp1 = BS_XOR(keys[i * 8 + j], r6xK[j]);
             printf("%d: %02x %02x %02x %02x  %02x %02x %02x %02x  r6xK %02x sout %02x\n", i,
-               (uint8)BS_EXTLS32(r[8 * 1]),
-               (uint8)BS_EXTLS32(r[8 * 2]),
-               (uint8)BS_EXTLS32(r[8 * 3]),
-               (uint8)BS_EXTLS32(r[8 * 4]),
-               (uint8)BS_EXTLS32(r[8 * 5]),
-               (uint8)BS_EXTLS32(r[8 * 6]),
-               (uint8)BS_EXTLS32(r[8 * 7]),
-               (uint8)BS_EXTLS32(r[8 * 8]),
-               (uint8)BS_EXTLS32(tmp1),
-               (uint8)BS_EXTLS32(sbox_out)
+               (uint8_t)BS_EXTLS32(r[8 * 1]),
+               (uint8_t)BS_EXTLS32(r[8 * 2]),
+               (uint8_t)BS_EXTLS32(r[8 * 3]),
+               (uint8_t)BS_EXTLS32(r[8 * 4]),
+               (uint8_t)BS_EXTLS32(r[8 * 5]),
+               (uint8_t)BS_EXTLS32(r[8 * 6]),
+               (uint8_t)BS_EXTLS32(r[8 * 7]),
+               (uint8_t)BS_EXTLS32(r[8 * 8]),
+               (uint8_t)BS_EXTLS32(tmp1),
+               (uint8_t)BS_EXTLS32(sbox_out)
             );
          }
 #endif

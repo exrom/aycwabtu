@@ -320,7 +320,7 @@ void aycw_assert_decrypt_result(ts_probe2_t *probedata, uint8_t *keylist, dvbcsa
       {
          int elem = i / BS_BATCH_BYTES + j * 8;    // number of bytesliced element
          int shift = i % BS_BATCH_BYTES * 8 ;      // byte shift inside element
-         ayc_data[j] = (uint8)BS_EXTLS32(BS_SHR(data[elem], shift));
+         ayc_data[j] = (uint8_t)BS_EXTLS32(BS_SHR(data[elem], shift));
       }
 #endif
 
